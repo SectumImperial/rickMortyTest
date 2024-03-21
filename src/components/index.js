@@ -19,3 +19,4 @@ export { LocationCard } from './LocationCard/LocationCard'
 
 export { EpisodesCards } from './EpisodesCards/EpisodesCards'
 export { EpisodeCard } from './EpisodeCard/EpisodeCard'
+export { FiltersModal } from './FiltersModal/FiltersModal'
