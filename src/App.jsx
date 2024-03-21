@@ -25,8 +25,8 @@ function App() {
           disableGutters
           sx={{
             display: "flex",
-            flexDirection: "column", // Добавлено для вертикального выравнивания
-            minHeight: "100vh", // Добавлено, чтобы Footer оставался внизу, если потребуется
+            flexDirection: "column", 
+            minHeight: "100vh", 
           }}
         >
           <Header />
