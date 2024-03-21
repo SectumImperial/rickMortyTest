@@ -17,6 +17,12 @@ export function Nav({ links }) {
 
   return (
     <nav className={styles.nav}>
+      {isOpen && (
+        <div
+          className={styles.backgroundOverlayOpen}
+          onClick={() => setIsOpen(false)}
+        />
+      )}
       <div className={classesBurger} onClick={handleBurgerCLick}></div>
       <ul className={classesList}>
         {links.map((link) => {
@@ -27,6 +33,7 @@ export function Nav({ links }) {
                 href={link.url}
                 color="black"
                 className={styles.link}
+                onClick={() => setIsOpen(false)} // Закрыть меню при клике на ссылку
               >
                 {link.text}
               </Link>
