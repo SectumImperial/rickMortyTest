@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import charactersReducer from './charactersSlice'; // Предполагается, что слайс называется charactersSlice
+import charactersReducer from './charactersSlice'; 
 
 export const store = configureStore({
   reducer: {
