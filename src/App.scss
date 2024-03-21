@@ -1,0 +1,10 @@
+@use './styles/mixins.scss';
+
+.container {
+  @include mixins.fontMain400;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+}

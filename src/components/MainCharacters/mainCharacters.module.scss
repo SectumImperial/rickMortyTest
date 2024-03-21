@@ -1,0 +1,26 @@
+@use "../../styles/mixins.scss";
+
+.main {
+  @include mixins.mainPageStyle;
+}
+
+.hero {
+  @include mixins.heroStyle;
+}
+
+.filterList {
+  @include mixins.inputFieldsStyle;
+
+  padding-right: 1px;
+  margin-bottom: 60px;
+}
+
+.filterItem {
+  flex-basis: 240px;
+}
+
+.loadMoreButton {
+  @include mixins.loadButtonStyle;
+  margin-top: 48px;
+  margin-bottom: 44px;
+}

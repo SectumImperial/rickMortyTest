@@ -1,0 +1,5 @@
+@use '../../styles/mixins.scss';
+
+.cardLink {
+  @include mixins.mainCardStyle;
+}

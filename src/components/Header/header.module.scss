@@ -1,0 +1,32 @@
+@use "../../styles/mixins.scss";
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+  min-height: 60px;
+  box-shadow: -2px 0px 8px 2px #0000001a;
+}
+
+.hiddenText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  border: 0;
+  padding: 0;
+  white-space: nowrap;
+  clip-path: inset(100%);
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+}
+
+.headerContent {
+  @include mixins.sizeComponent;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+}

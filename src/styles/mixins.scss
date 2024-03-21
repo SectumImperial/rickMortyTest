@@ -1,0 +1,73 @@
+@use "./variables.scss";
+@import "@fontsource/roboto/400.css";
+@import "@fontsource/roboto/500.css";
+@import "@fontsource-variable/karla";
+
+@mixin sizeComponent {
+  width: 100%;
+  max-width: variables.$content-width;
+}
+
+@mixin fontMain400 {
+  font-family: variables.$fontMain;
+  font-weight: 400;
+}
+
+@mixin fontMain500 {
+  font-family: variables.$fontMain;
+  font-weight: 500;
+}
+
+@mixin fontSecond700 {
+  font-family: variables.$fontSecond;
+  font-weight: 700;
+}
+
+@mixin mainPageStyle {
+  @include sizeComponent;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+}
+
+@mixin heroStyle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  padding: 5px;
+}
+
+@mixin inputFieldsStyle {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 23px;
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@mixin loadButtonStyle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin mainCardsStyle {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 24px;
+}
+
+@mixin mainCardStyle {
+  text-decoration: none;
+  &:hover {
+    outline: 1px solid black;
+  }
+}
