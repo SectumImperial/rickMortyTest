@@ -1,3 +1,10 @@
-.name {
-    border: 1px solid red;
-}
+.heroImage {
+    max-width: 100%; 
+    height: auto; 
+  }
+  
+  @media (max-width: 768px) {
+    .heroImage {
+      /* Дополнительные стили для маленьких экранов */
+    }
+  }
