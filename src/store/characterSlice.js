@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
 import axios from "axios";
 
 export const fetchCharacters = createAsyncThunk(
@@ -13,9 +13,12 @@ export const fetchCharacters = createAsyncThunk(
     return response.data;
   },
 );
+
 const initialState = {
   entities: [],
+  charactersByIds: [],
   loading: "idle",
+  byIdsLoading: "idle",
   error: null,
   filters: JSON.parse(localStorage.getItem("characterFilters")) || {
     name: "",
@@ -69,4 +72,13 @@ export const selectFilteredCharacters = (state) => {
       (!filters.gender || character.gender === filters.gender),
   );
 };
+
+
+export const selectCharactersByIds = createSelector(
+  [selectAllCharacters, (state, characterIds) => characterIds],
+  (characters, characterIds) => {
+    return characters.filter(character => characterIds.includes(character.id.toString()));
+  }
+);
+
 export default charactersSlice.reducer;

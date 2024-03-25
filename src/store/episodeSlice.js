@@ -13,6 +13,17 @@ export const fetchEpisodes = createAsyncThunk(
   },
 );
 
+export const fetchEpisodesByIds = createAsyncThunk(
+  "episodes/fetchByIds",
+  async (episodeIds) => {
+    const requests = episodeIds.map((id) =>
+      axios.get(`https://rickandmortyapi.com/api/episode/${id}`),
+    );
+    const responses = await Promise.all(requests);
+    return responses.map((response) => response.data);
+  },
+);
+
 const initialState = {
   entities: [],
   loading: "idle",
@@ -59,16 +70,19 @@ export const selectEpisodeFilters = (state) => state.episodes.filters;
 export const selectFilteredEpisodes = createSelector(
   [selectAllEpisodes, selectEpisodeFilters],
   (entities, filters) => {
-    return entities.filter(
-      (episode) => {
-        const filterString = filters.name.toLowerCase();
-        return (
-          episode.name.toLowerCase().includes(filterString) ||
-          episode.episode.toLowerCase().includes(filterString)
-        );
-      }
-    );
-  }
+    return entities.filter((episode) => {
+      const filterString = filters.name.toLowerCase();
+      return (
+        episode.name.toLowerCase().includes(filterString) ||
+        episode.episode.toLowerCase().includes(filterString)
+      );
+    });
+  },
+);
+
+export const selectEpisodesByIds = createSelector(
+  [selectAllEpisodes, (state, episodeIds) => episodeIds],
+  (episodes, episodeIds) => episodes.filter(episode => episodeIds.includes(episode.id.toString()))
 );
 
 

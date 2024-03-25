@@ -4,7 +4,7 @@ import styles from "./mainEpisodes.module.scss";
 import {
   fetchEpisodes,
   selectFilteredEpisodes,
-  selectEpisodeFilters
+  selectEpisodeFilters,
 } from "../../store/episodeSlice";
 import { ITEMS_PER_PAGE } from "./constants";
 import { Hero, FilterInput, LoadMoreButton, EpisodesCards, Loading } from "..";
@@ -26,7 +26,7 @@ export function MainEpisodes() {
   }, []);
 
   const content = useMemo(() => {
-    return episodeLoading === 'loading' ? (
+    return episodeLoading === "loading" ? (
       <Loading />
     ) : episodes.length > 0 ? (
       <EpisodesCards episodes={episodes.slice(0, itemsPerPage)} />
@@ -42,7 +42,7 @@ export function MainEpisodes() {
       </div>
       <ul className={styles.filterList}>
         <li className={styles.filterField}>
-        <FilterInput
+          <FilterInput
             filterName="name"
             text="Filter by name or episode (ex. S01 or S01E02)"
             action={selectEpisodeFilters}
@@ -50,18 +50,16 @@ export function MainEpisodes() {
           />
         </li>
       </ul>
-      <section className={styles.contentCard}>
-        {content}
-      </section>
-      {episodeLoading !== 'loading' && episodes.length > itemsPerPage && (
+      <section className={styles.contentCard}>{content}</section>
+      {episodeLoading !== "loading" && episodes.length > itemsPerPage && (
         <div
-        className={styles.loadMoreButtonContainer}
-        onClick={handleLoadMoreClick}
-      >
-        {episodes.length > itemsPerPage && (
-          <LoadMoreButton onClick={handleLoadMoreClick} />
-        )}
-      </div>
+          className={styles.loadMoreButtonContainer}
+          onClick={handleLoadMoreClick}
+        >
+          {episodes.length > itemsPerPage && (
+            <LoadMoreButton onClick={handleLoadMoreClick} />
+          )}
+        </div>
       )}
     </main>
   );

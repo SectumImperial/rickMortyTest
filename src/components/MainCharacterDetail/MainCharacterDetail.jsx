@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import styles from "./mainCharacterDetail.module.scss";
 import { fetchCharacters } from "../../store/characterSlice";
+import {fetchEpisodes, selectEpisodesByIds} from "../../store/episodeSlice";
 import { GoBackLink } from "../";
 import { INFORMATION_FIELDS } from "./constants";
 import { extractNumbersFromEnd } from "./helpers";
@@ -11,11 +12,21 @@ export const MainCharacterDetail = () => {
   const dispatch = useDispatch();
   const { characterId } = useParams();
   const characterLoading = useSelector((state) => state.characters.loading);
+  const episodeLoading = useSelector((state) => state.episodes.loading);
   const character = useSelector((state) =>
-    state.characters.entities.find(
-      (char) => char.id.toString() === characterId,
-    ),
-  );
+  state.characters.entities.find((char) => char.id.toString() === characterId)
+);
+
+  useEffect(() => {
+    dispatch(fetchEpisodes());
+  }, [dispatch]);
+
+  const episodeIds = useMemo(() => {
+    return character?.episode.map((url) => url.split('/').pop()) || [];
+  }, [character]);
+
+  const episodesForCharacter = useSelector((state) => selectEpisodesByIds(state, episodeIds));
+
 
   useEffect(() => {
     if (characterLoading === "idle") {
@@ -29,6 +40,8 @@ export const MainCharacterDetail = () => {
   const nameCharacter = useMemo(() => {
     if (characterLoading === "succeeded" && character) return character.name;
   }, [character, characterLoading]);
+
+
 
   const informationContent = useMemo(() => {
     if (characterLoading === "succeeded" && character) {
@@ -85,6 +98,17 @@ export const MainCharacterDetail = () => {
     [character, imageSrc, nameCharacter],
   );
 
+  const episodesContent = useMemo(() => {
+    if (episodeLoading === 'succeeded') {
+      return episodesForCharacter.map((episode) => (
+        <Link to={`/episodes/${episode.id}`} key={episode.id} className={styles.episodeLink}>
+          {episode.name} ({episode.episode})
+        </Link>
+      ));
+    }
+    return <p>Loading episodes...</p>;
+  }, [episodesForCharacter, episodeLoading]);
+
   return (
     <main className={styles.main}>
       <div className={styles.top}>
@@ -100,6 +124,9 @@ export const MainCharacterDetail = () => {
         </section>
         <section className={styles.information}>
           <h3 className={styles.title}>Episodes</h3>
+          <div>
+          {episodesContent}
+          </div>
         </section>
       </section>
     </main>

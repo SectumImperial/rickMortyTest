@@ -46,7 +46,11 @@ export function MainLocations() {
   const selectFilterLabels = useMemo(
     () => [
       { label: "Type", items: typeOptions, action: setLocationsFilter },
-      { label: "Dimension", items: dimensionOptions, action: setLocationsFilter },
+      {
+        label: "Dimension",
+        items: dimensionOptions,
+        action: setLocationsFilter,
+      },
     ],
     [typeOptions, dimensionOptions],
   );

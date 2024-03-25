@@ -36,15 +36,15 @@ export function MainCharacters() {
   }, [characterLoading, dispatch]);
   const statusOptions = useMemo(
     () => getUniqueValues(allCharacters, "status"),
-    [allCharacters]
+    [allCharacters],
   );
   const speciesOptions = useMemo(
     () => getUniqueValues(allCharacters, "species"),
-    [allCharacters]
+    [allCharacters],
   );
   const genderOptions = useMemo(
     () => getUniqueValues(allCharacters, "gender"),
-    [allCharacters]
+    [allCharacters],
   );
 
   const handleLoadMoreClick = useCallback(() => {
@@ -57,7 +57,7 @@ export function MainCharacters() {
       { label: "Gender", items: genderOptions, action: setFilter },
       { label: "Status", items: statusOptions, action: setFilter },
     ],
-    [statusOptions, speciesOptions, genderOptions]
+    [statusOptions, speciesOptions, genderOptions],
   );
 
   const content = useMemo(() => {

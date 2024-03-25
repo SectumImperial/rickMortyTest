@@ -5,10 +5,10 @@ import styles from "./episodeCard.module.scss";
 import { Link } from "react-router-dom";
 
 export function EpisodeCard({ episodeData }) {
-  const { name, air_date, episode } = episodeData;
-  console.log(episodeData);
+  const { name, air_date, episode, id } = episodeData;
+  const episodeLink = `/episodes/${id}`;
   return (
-    <Link href="#" className={styles.cardLink}>
+    <Link to={episodeLink} className={styles.cardLink}>
       <Card
         sx={{
           minWidth: 240,
