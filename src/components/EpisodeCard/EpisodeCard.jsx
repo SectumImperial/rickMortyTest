@@ -5,7 +5,8 @@ import styles from "./episodeCard.module.scss";
 import { Link } from "react-router-dom";
 
 export function EpisodeCard({ episodeData }) {
-  const { series, date, episode } = episodeData;
+  const { name, air_date, episode } = episodeData;
+  console.log(episodeData);
   return (
     <Link href="#" className={styles.cardLink}>
       <Card
@@ -25,10 +26,10 @@ export function EpisodeCard({ episodeData }) {
             color="black"
             gutterBottom
           >
-            {series}
+            {name}
           </Typography>
           <Typography sx={{ fontSize: 14 }} color="text.secondary">
-            {date}
+            {air_date}
           </Typography>
           <Typography
             sx={{ fontSize: 14 }}

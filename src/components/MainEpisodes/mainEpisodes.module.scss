@@ -27,7 +27,7 @@
   }
 }
 
-.loadMoreButton {
+.loadMoreButtonContainer {
   @include mixins.loadButtonStyle;
   margin-top: 46px;
   margin-bottom: 27px;

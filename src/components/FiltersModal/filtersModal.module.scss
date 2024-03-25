@@ -17,8 +17,10 @@
   width: 312px;
   border-radius: 4px;
   padding: 15px;
-  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.14),
-    0px 3px 4px 0px rgba(0, 0, 0, 0.12), 0px 1px 5px 0px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0px 2px 4px 0px rgba(0, 0, 0, 0.14),
+    0px 3px 4px 0px rgba(0, 0, 0, 0.12),
+    0px 1px 5px 0px rgba(0, 0, 0, 0.2);
 }
 
 .modalList {
@@ -63,14 +65,13 @@
   }
 }
 
-
 .applyButton {
-  background-color: #F2F9FE;
+  background-color: #f2f9fe;
   border-color: #0063cc;
-  color: #2196F3;
+  color: #2196f3;
   width: 100%;
   margin-top: 33px;
-  
+
   &:hover {
     background-color: #0069d9;
     border-color: #0062cc;

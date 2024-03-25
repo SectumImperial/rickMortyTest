@@ -33,6 +33,10 @@ const charactersSlice = createSlice({
       state.filters[filterName] = value;
       localStorage.setItem("characterFilters", JSON.stringify(state.filters));
     },
+    resetFilters(state) {
+      state.filters = {};
+      localStorage.removeItem("characterFilters");
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -50,7 +54,7 @@ const charactersSlice = createSlice({
   },
 });
 
-export const { setFilter } = charactersSlice.actions;
+export const { setFilter, resetFilters } = charactersSlice.actions;
 
 export const selectAllCharacters = (state) => state.characters.entities;
 export const selectFilters = (state) => state.characters.filters;

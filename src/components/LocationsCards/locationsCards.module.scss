@@ -1,5 +1,5 @@
-@use '../../styles/mixins.scss';
+@use "../../styles/mixins.scss";
 
 .cards {
-    @include mixins.mainCardsStyle;
+  @include mixins.mainCardsStyle;
 }

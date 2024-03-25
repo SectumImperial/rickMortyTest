@@ -1,14 +1,14 @@
 .filter {
-    width: 100%;
-    &:hover {
-      color: #00000080; 
-    }
-    color: #00000099; 
+  width: 100%;
+  &:hover {
+    color: #00000080;
   }
-  
-  .textFieldHover {
-    &:hover {
-      color: #00000080;
-    }
-    color: #00000099;
+  color: #00000099;
+}
+
+.textFieldHover {
+  &:hover {
+    color: #00000080;
   }
+  color: #00000099;
+}

@@ -57,7 +57,12 @@
   max-width: 312px;
 }
 
+.contentCard {
+  text-align: center;
+}
+
 .loading {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }

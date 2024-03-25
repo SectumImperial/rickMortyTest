@@ -1,0 +1,109 @@
+@use "../../styles/mixins.scss";
+@use "../../styles/variables.scss";
+
+.main {
+  @include mixins.mainPageStyle;
+  width: 100%;
+}
+
+.top {
+  width: 100%;
+  display: flex;
+  padding-top: 16px;
+  margin-bottom: 42px;
+}
+
+.charactersInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  flex-grow: 1;
+  padding-right: 84px;
+
+  @media (max-width: variables.$mobileScreen) {
+    padding: 5px;
+  }
+}
+
+.image {
+  width: 100%;
+  max-width: 300px;
+  border: 5px solid #f2f2f7;
+  border-radius: 50%;
+}
+
+.name {
+  font-size: 48px;
+  font-weight: 400;
+  margin: 0;
+  margin-top: 16px;
+}
+
+.information {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 36px;
+}
+
+.informationSection {
+  display: flex;
+  flex-direction: column;
+  max-width: 413px;
+  width: 100%;
+}
+
+.title {
+  font-size: 20px;
+  color: #8e8e93;
+  margin: 0;
+  @include mixins.fontMain500;
+}
+
+.informationItem {
+  border-bottom: 1px solid rgba(33, 33, 33, 0.08);
+  padding: 9px 16px 12px 16px;
+}
+
+.dt {
+  @include mixins.fontSecond700;
+  font-size: 16px;
+  padding-bottom: 2px;
+}
+.dd {
+  margin: 0;
+  font-size: 14px;
+  color: #6e798c;
+}
+
+.error {
+  font-size: 24px;
+}
+
+.linkedItem {
+  display: block;
+  text-decoration: none;
+  position: relative;
+
+  .dt {
+    color: rgba(8, 31, 50, 1);
+  }
+
+  &::before {
+    position: absolute;
+    content: "";
+    width: 10px;
+    height: 10px;
+    left: calc(100% - 25px);
+    top: 50%;
+    transform: rotate(230deg) translateY(50%);
+    box-sizing: border-box;
+    border-left: 2px solid rgba(142, 142, 147, 1);
+    border-bottom: 2px solid rgba(142, 142, 147, 1);
+  }
+
+  &:hover {
+    background-color: rgba(142, 142, 147, 0.219);
+  }
+  transition: all ease-out 0.1s;
+}

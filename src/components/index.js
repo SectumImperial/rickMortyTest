@@ -13,10 +13,11 @@ export { MainEpisodes } from "./MainEpisodes/MainEpisodes";
 
 export { CharactersCards } from "./CharactersCards/CharactersCards";
 export { CharacterCard } from "./CharacterCard/CharacterCard";
-export { CharacterDetail } from "./CharacterDetail/CharacterDetail";
+export { MainCharacterDetail } from "./MainCharacterDetail/MainCharacterDetail";
 
 export { LocationsCards } from "./LocationsCards/LocationsCards";
 export { LocationCard } from "./LocationCard/LocationCard";
+export { MainLocationDetail } from "./MainLocationDetail/MainLocationDetail";
 
 export { EpisodesCards } from "./EpisodesCards/EpisodesCards";
 export { EpisodeCard } from "./EpisodeCard/EpisodeCard";
@@ -25,3 +26,4 @@ export { FiltersModal } from "./FiltersModal/FiltersModal";
 export { AdvancedFiltersButton } from "./AdvancedFiltersButton/AdvancedFiltersButton";
 
 export { Loading } from "./Loading/Loading";
+export { GoBackLink } from "./GoBackLink/GoBackLink";

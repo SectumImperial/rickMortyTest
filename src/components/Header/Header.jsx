@@ -7,7 +7,7 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerContent}>
-        <Link href="./">
+        <Link href="./characters">
           <Logo />
           <span className={styles.hiddenText}>Главная страница</span>
         </Link>

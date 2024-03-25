@@ -5,9 +5,11 @@ import styles from "./locationCard.module.scss";
 import { Link } from "react-router-dom";
 
 export function LocationCard({ location }) {
-  const { name, type } = location;
+  const { name, type, id } = location;
+  const locationsLink = `/locations/${id}`;
+
   return (
-    <Link href="#" className={styles.cardLink}>
+    <Link to={locationsLink} className={styles.cardLink}>
       <Card
         sx={{
           minWidth: 240,

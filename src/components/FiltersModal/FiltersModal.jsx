@@ -73,12 +73,18 @@ export function FiltersModal({ modalData }) {
                     props={{
                       label: item.label,
                       items: item.items,
+                      action: item.action,
+                      filterName: item.label.toLowerCase(),
                     }}
                   />
                 </li>
               ))}
             </ul>
-            <ApplyButtonStyle variant="contained" disableRipple>
+            <ApplyButtonStyle
+              variant="contained"
+              disableRipple
+              onClick={handleClose}
+            >
               Apply
             </ApplyButtonStyle>
           </div>

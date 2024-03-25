@@ -8,8 +8,9 @@ export function FilterInput({
   text = "Filter by name...",
   filterName,
   action,
+  type = "characterFilters",
 }) {
-  const { updateFilter } = useFilters();
+  const { updateFilter } = useFilters(type);
   const filters = useSelector(action);
 
   const handleFilterChange = (event) => {

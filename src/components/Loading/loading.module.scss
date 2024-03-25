@@ -1,7 +1,3 @@
-.loading {
-  animation: rotate 2s linear infinite;
-}
-
 @keyframes rotate {
   from {
     transform: rotate(0deg);
@@ -12,5 +8,7 @@
 }
 
 .box {
+  max-width: 200px;
   animation: rotate 2s linear infinite;
+  align-self: center;
 }

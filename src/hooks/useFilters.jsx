@@ -1,17 +1,38 @@
 import { useDispatch } from "react-redux";
-import { setFilter } from "../store/characterSlice";
+import { setFilter, resetFilters } from "../store/characterSlice";
+import { setLocationsFilter, resetLocationsFilters } from "../store/locationsSlice";
+import { setEpisodeFilter, resetEpisodeFilters } from "../store/episodeSlice";
 
-export const useFilters = () => {
+const filterActions = {
+  characters: {
+    setFilter: setFilter,
+    resetFilters: resetFilters,
+  },
+  locations: {
+    setFilter: setLocationsFilter,
+    resetFilters: resetLocationsFilters,
+  },
+  episodes: {
+    setFilter: setEpisodeFilter,
+    resetFilters: resetEpisodeFilters,
+  },
+};
+
+export const useFilters = (type = "characters") => {
   const dispatch = useDispatch();
 
+  const actions = filterActions[type];
   const updateFilter = (filterName, value) => {
-    dispatch(setFilter({ filterName, value }));
-
-    const currentFilters =
-      JSON.parse(localStorage.getItem("characterFilters")) || {};
+    dispatch(actions.setFilter({ filterName, value }));
+    const currentFilters = JSON.parse(localStorage.getItem(`${type}Filters`)) || {};
     currentFilters[filterName] = value;
-    localStorage.setItem("characterFilters", JSON.stringify(currentFilters));
+    localStorage.setItem(`${type}Filters`, JSON.stringify(currentFilters));
   };
 
-  return { updateFilter };
+  const resetAllFilters = () => {
+    dispatch(actions.resetFilters());
+    localStorage.removeItem(`${type}Filters`);
+  };
+
+  return { updateFilter, resetAllFilters };
 };
