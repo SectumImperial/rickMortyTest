@@ -12,6 +12,7 @@ export function Nav({ links }) {
     : `${styles.list}`;
 
   const handleBurgerCLick = () => {
+    document.querySelector("body").classList.toggle(styles.unScroll);
     setIsOpen(!isOpen);
   };
 
@@ -33,7 +34,7 @@ export function Nav({ links }) {
                 href={link.url}
                 color="black"
                 className={styles.link}
-                onClick={() => setIsOpen(false)} // Закрыть меню при клике на ссылку
+                onClick={() => setIsOpen(false)}
               >
                 {link.text}
               </Link>

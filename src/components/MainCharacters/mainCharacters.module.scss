@@ -1,4 +1,5 @@
 @use "../../styles/mixins.scss";
+@use "../../styles/variables.scss";
 
 .main {
   @include mixins.mainPageStyle;
@@ -6,6 +7,8 @@
 
 .hero {
   @include mixins.heroStyle;
+  max-width: 600px;
+  align-self: center;
 }
 
 .filterList {
@@ -13,14 +16,48 @@
 
   padding-right: 1px;
   margin-bottom: 60px;
+
+  @media (max-width: variables.$mobileScreen) {
+    padding: 0;
+    max-width: 312px;
+    width: 100%;
+    margin: 0 auto;
+    margin-bottom: 16px;
+  }
 }
 
 .filterItem {
   flex-basis: 240px;
+  @media (max-width: variables.$mobileScreen) {
+    flex-basis: auto;
+  }
 }
 
-.loadMoreButton {
+.filterField {
+  @media (max-width: variables.$mobileScreen) {
+    width: 100%;
+  }
+}
+
+.loadMoreButtonContainer {
   @include mixins.loadButtonStyle;
   margin-top: 48px;
   margin-bottom: 44px;
+}
+
+.filterSelect {
+  @media (max-width: variables.$mobileScreen) {
+    display: none;
+  }
+}
+
+.advancedFiltersButton {
+  margin: auto;
+  @include mixins.advancedFiltersButton(48px);
+  max-width: 312px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
 }

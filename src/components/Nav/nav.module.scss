@@ -4,12 +4,13 @@
 .nav {
   @include mixins.fontSecond700;
   max-width: variables.$content-width;
-  @media (max-width: 400px) {
+  box-sizing: border-box;
+  @media (max-width: variables.$mobileScreen) {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
-    padding-top: 16px;
+    padding: 5px 24px;
   }
 }
 
@@ -22,15 +23,15 @@
   list-style: none;
   font-weight: 700;
 
-  @media (max-width: 400px) {
+  @media (max-width: variables.$mobileScreen) {
     display: none;
     flex-direction: column;
     align-items: flex-start;
     position: fixed;
-    top: 60px; 
+    top: 60px;
     left: 0;
-    height: calc(100vh - 60px);
-    width: 100%; 
+    height: calc(100vh - 61px);
+    width: 100%;
     background-color: white;
     z-index: 10;
     transform: translateX(-100%);
@@ -50,12 +51,17 @@
 }
 
 .listOpen {
-  display: flex; 
-  transform: translateX(0); 
+  display: flex;
+  transform: translateX(0);
+  @media (max-width: variables.$mobileScreen) {
+    align-items: center;
+    font-size: 24px;
+    padding-top: 40px;
+  }
 }
 
 .backgroundOverlayOpen {
-  display: block; 
+  display: block;
 }
 
 .link {
@@ -89,7 +95,7 @@
     bottom: 5px;
   }
 
-  @media (min-width: 400px) {
+  @media (min-width: variables.$mobileScreen) {
     display: none;
   }
 }
@@ -102,4 +108,11 @@
   &::after {
     display: none;
   }
+}
+
+.unScroll {
+  @media (max-width: variables.$mobileScreen) {
+    overflow: hidden;
+  }
+  overflow: auto;
 }

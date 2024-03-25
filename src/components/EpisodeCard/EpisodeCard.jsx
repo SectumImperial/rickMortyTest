@@ -2,14 +2,14 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import styles from "./episodeCard.module.scss";
+import { Link } from "react-router-dom";
 
 export function EpisodeCard({ episodeData }) {
   const { series, date, episode } = episodeData;
   return (
-    <a href="#" className={styles.cardLink}>
+    <Link href="#" className={styles.cardLink}>
       <Card
         sx={{
-          maxWidth: 240,
           minWidth: 240,
           minHeight: 128,
           display: "flex",
@@ -30,11 +30,17 @@ export function EpisodeCard({ episodeData }) {
           <Typography sx={{ fontSize: 14 }} color="text.secondary">
             {date}
           </Typography>
-          <Typography sx={{ fontSize: 14 }} color="text.secondary" fontWeight="bold" textTransform="uppercase" paddingTop="5px"> 
+          <Typography
+            sx={{ fontSize: 14 }}
+            color="text.secondary"
+            fontWeight="bold"
+            textTransform="uppercase"
+            paddingTop="5px"
+          >
             {episode}
           </Typography>
         </CardContent>
       </Card>
-    </a>
+    </Link>
   );
 }

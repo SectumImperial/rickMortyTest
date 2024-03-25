@@ -1,17 +1,94 @@
-.modalOpen {
-    position: fixed; 
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); 
-    z-index: 30; 
-    display: flex; 
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+.modalClosed {
+  display: none;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modalBox {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 312px;
+  border-radius: 4px;
+  padding: 15px;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.14),
+    0px 3px 4px 0px rgba(0, 0, 0, 0.12), 0px 1px 5px 0px rgba(0, 0, 0, 0.2);
+}
+
+.modalList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 16px;
+  flex-direction: column;
+}
+
+.modalField {
+  width: 100%;
+}
+
+.closeModal {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.54);
+    &:hover {
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.34);
+    }
   }
+
+  &::before {
+    transform: rotate(-45deg);
+  }
+
+  &::after {
+    transform: rotate(45deg);
+  }
+}
+
+
+.applyButton {
+  background-color: #F2F9FE;
+  border-color: #0063cc;
+  color: #2196F3;
+  width: 100%;
+  margin-top: 33px;
   
-  .modalClosed {
-    display: none; 
+  &:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+    box-shadow: none;
+    color: white;
   }
+
+  &:active {
+    box-shadow: none;
+    background-color: #0062cc;
+    border-color: #005cbf;
+    color: white;
+  }
+
+  &:focus {
+    box-shadow: none;
+    background-color: #0062cc;
+    border-color: #005cbf;
+    color: white;
+  }
+}

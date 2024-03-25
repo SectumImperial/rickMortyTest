@@ -1,30 +1,75 @@
+import { useDispatch, useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import {
+  selectAllLocations,
+  fetchLocations,
+  selectFilters,
+} from "../../store/locationsSlice";
 import styles from "./mainLocations.module.scss";
-import { useState } from 'react'; 
-import { TEST_DATA_LABEL } from "./constants";
+import { TEST_DATA_LABEL, ITEMS_PER_PAGE } from "./constants";
 import {
   Hero,
   FilterInput,
   SelectField,
   LocationsCards,
   LoadMoreButton,
-  FiltersModal
+  FiltersModal,
+  Loading,
 } from "..";
 
-const testDataPlanet = {
-  locationName: "Earth (C-137)",
-  dimension: "Planet",
-};
-
-let testArray = [];
-for (let i = 0; i < 12; i++) {
-  testArray.push(testDataPlanet);
-}
-
 export function MainLocations() {
-  const [isFiltersVisible, setIsFiltersVisible] = useState(false);
-  const toggleFilters = () => {
-    setIsFiltersVisible(!isFiltersVisible);
+  const dispatch = useDispatch();
+  const locations = useSelector(selectAllLocations);
+
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
+
+  const locationLoading = useSelector((state) => state.locations.loading);
+
+  useEffect(() => {
+    if (locationLoading === "idle") {
+      dispatch(fetchLocations());
+    }
+  }, [locationLoading, dispatch]);
+
+  let content;
+  switch (locationLoading) {
+    case "loading":
+      content = (
+        <div className={styles.loading}>
+          <Loading />
+        </div>
+      );
+      break;
+    case "succeeded":
+      const locationsPage = locations.slice(0, itemsPerPage);
+      content = <LocationsCards locations={locationsPage} />;
+      break;
+
+    default:
+      content = (
+        <div className={styles.loading}>
+          <Loading />
+        </div>
+      );
+  }
+
+  const handleLoadMoreClick = () => {
+    setItemsPerPage(itemsPerPage + ITEMS_PER_PAGE);
   };
+
+  const selectInputs = TEST_DATA_LABEL.map((item) => (
+    <li key={item.label} className={styles.filterSelect}>
+      <SelectField
+        sx={{
+          margin: "0",
+        }}
+        props={{
+          label: item.label,
+          items: item.items,
+        }}
+      />
+    </li>
+  ));
 
   return (
     <main className={styles.main}>
@@ -32,54 +77,34 @@ export function MainLocations() {
         <Hero className={styles.heroImage} type="circle" />
       </div>
 
-      <div className={styles.advancedFiltersButton}>
-        <button onClick={toggleFilters}>ADVANCED FILTERS</button>
-      </div>
-      <FiltersModal isOpen={isFiltersVisible} handleClose={toggleFilters}>
-        <div> <ul className={styles.filterList}>
-        <li className={`${styles.filterItem} ${styles.filterField}`} key={Date.now()}>
-          <FilterInput />
-        </li>
-        {TEST_DATA_LABEL.map((item) => (
-          <li key={item.label} className={styles.filterItem}>
-            <SelectField
-              sx={{
-                maxWidth: "240",
-                margin: "0",
-              }}
-              props={{
-                label: item.label,
-                items: item.items,
-              }}
-            />
-          </li>
-        ))}
-      </ul></div>
-      </FiltersModal>
       <ul className={styles.filterList}>
-        <li className={`${styles.filterItem} ${styles.filterField}`} key={Date.now()}>
-          <FilterInput />
+        <li
+          className={`${styles.filterItem} ${styles.filterField}`}
+          key={Date.now()}
+        >
+          <FilterInput
+            filterName="name"
+            text="Filter by name..."
+            action={selectFilters}
+          />
         </li>
-        {TEST_DATA_LABEL.map((item) => (
-          <li key={item.label} className={styles.filterItem}>
-            <SelectField
-              sx={{
-                maxWidth: "240",
-                margin: "0",
-              }}
-              props={{
-                label: item.label,
-                items: item.items,
-              }}
-            />
-          </li>
-        ))}
+        {selectInputs}
       </ul>
-      <section>
-        <LocationsCards locations={testArray}/>
-      </section>
-      <div className={styles.loadMoreButton}>
-        <LoadMoreButton />
+
+      <div className={styles.advancedFiltersButton}>
+        <FiltersModal modalData={TEST_DATA_LABEL} />
+      </div>
+
+      <section>{content}</section>
+      <div className={styles.loadMoreButtonContainer}>
+        {locations.length > itemsPerPage && (
+          <div
+            className={styles.loadMoreButtonContainer}
+            onClick={handleLoadMoreClick}
+          >
+            <LoadMoreButton />
+          </div>
+        )}
       </div>
     </main>
   );

@@ -1,4 +1,5 @@
 @use "../../styles/mixins.scss";
+@use "../../styles/variables.scss";
 
 .header {
   width: 100%;
@@ -8,7 +9,13 @@
   margin: 0 auto;
   min-height: 60px;
   box-shadow: -2px 0px 8px 2px #0000001a;
-  z-index: 11;
+  background-color: white;
+  @media (max-width: variables.$mobileScreen) {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 11;
+  }
 }
 
 .hiddenText {
@@ -26,6 +33,7 @@
 
 .headerContent {
   @include mixins.sizeComponent;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
