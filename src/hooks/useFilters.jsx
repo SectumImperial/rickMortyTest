@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { setFilter, resetFilters } from "../store/characterSlice";
+import { setCharacterFilter, resetCharacterFilters } from "../store/characterSlice";
 import {
   setLocationsFilter,
   resetLocationsFilters,
@@ -8,8 +8,8 @@ import { setEpisodeFilter, resetEpisodeFilters } from "../store/episodeSlice";
 
 const filterActions = {
   characters: {
-    setFilter: setFilter,
-    resetFilters: resetFilters,
+    setFilter: setCharacterFilter,
+    resetFilters: resetCharacterFilters,
   },
   locations: {
     setFilter: setLocationsFilter,

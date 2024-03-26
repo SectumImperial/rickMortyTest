@@ -8,7 +8,7 @@ import {
   selectFilteredLocations,
 } from "../../store/locationsSlice";
 import styles from "./mainLocations.module.scss";
-import { ITEMS_PER_PAGE } from "./constants";
+import { ITEMS_PER_PAGE_INITIAL } from "./constants";
 import { getUniqueValues } from "../../helpers/helpers";
 import {
   Hero,
@@ -24,23 +24,23 @@ export function MainLocations() {
   const dispatch = useDispatch();
   const allLocations = useSelector(selectAllLocations);
   const locations = useSelector(selectFilteredLocations);
-
-  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
   const locationLoading = useSelector((state) => state.locations.loading);
+  const maxPage = useSelector(state => state.locations.maxPage)
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    if (locationLoading === "idle") {
-      dispatch(fetchLocations());
-    }
-  }, [locationLoading, dispatch]);
+    dispatch(fetchLocations({ page: currentPage }));
+  }, [dispatch, currentPage]);
+
 
   const typeOptions = useMemo(
     () => getUniqueValues(allLocations, "type"),
-    [allLocations],
+    [allLocations]
   );
   const dimensionOptions = useMemo(
     () => getUniqueValues(allLocations, "dimension"),
-    [allLocations],
+    [allLocations]
   );
 
   const selectFilterLabels = useMemo(
@@ -52,7 +52,7 @@ export function MainLocations() {
         action: setLocationsFilter,
       },
     ],
-    [typeOptions, dimensionOptions],
+    [typeOptions, dimensionOptions]
   );
 
   const content = useMemo(() => {
@@ -67,7 +67,8 @@ export function MainLocations() {
   }, [locations, itemsPerPage]);
 
   const handleLoadMoreClick = () => {
-    setItemsPerPage(itemsPerPage + ITEMS_PER_PAGE);
+    setCurrentPage(currentPage + 1);
+    setItemsPerPage(itemsPerPage + ITEMS_PER_PAGE_INITIAL);
   };
 
   return (
@@ -107,15 +108,11 @@ export function MainLocations() {
         <section className={styles.contentCard}>{content}</section>
       )}
       <div />
-      <div className={styles.loadMoreButtonContainer}>
-        {locations.length > itemsPerPage && (
-          <div
-            className={styles.loadMoreButtonContainer}
-            onClick={handleLoadMoreClick}
-          >
-            <LoadMoreButton />
-          </div>
-        )}
+      <div
+        className={styles.loadMoreButtonContainer}
+        onClick={handleLoadMoreClick}
+      >
+        {currentPage <= maxPage && <LoadMoreButton />}
       </div>
     </main>
   );

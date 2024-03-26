@@ -4,14 +4,20 @@ import axios from "axios";
 
 export const fetchEpisodes = createAsyncThunk(
   "episodes/fetchEpisodes",
-  async (queryParams) => {
+  async (filters, { getState }) => {
+    const { episodes: { filters: currentFilters } } = getState();
+    const queryParams = new URLSearchParams({
+      ...currentFilters,
+      ...filters, 
+    }).toString();
+    
     const response = await axios.get(
-      "https://rickandmortyapi.com/api/episode",
-      { params: queryParams },
+      `https://rickandmortyapi.com/api/episode/?${queryParams}`
     );
     return response.data;
-  },
+  }
 );
+
 
 // export const fetchEpisodesByIds = createAsyncThunk(
 //   "episodes/fetchByIds",
@@ -27,27 +33,30 @@ export const fetchEpisodes = createAsyncThunk(
 export const fetchEpisodeById = createAsyncThunk(
   "episodes/fetchEpisodeById",
   async (episodeId) => {
-    const response = await axios.get(`https://rickandmortyapi.com/api/episode/${episodeId}`);
+    const response = await axios.get(
+      `https://rickandmortyapi.com/api/episode/${episodeId}`,
+    );
     return response.data;
-  }
+  },
 );
 
 export const fetchCharactersByEpisodeId = createAsyncThunk(
   "episodes/fetchCharactersByEpisodeId",
   async (episodeIds) => {
     const requests = episodeIds.map((id) =>
-      axios.get(`https://rickandmortyapi.com/api/character/${id}`)
+      axios.get(`https://rickandmortyapi.com/api/character/${id}`),
     );
     const responses = await Promise.all(requests);
     return responses.map((response) => response.data);
-  }
+  },
 );
 
 const initialState = {
+  maxPage: 1,
   entities: [],
   loading: "idle",
-  currentEpisode: null, 
-  characters: [],   
+  currentEpisode: null,
+  characters: [],
   error: null,
   filters: JSON.parse(localStorage.getItem("episodeFilters")) || {
     name: "",
@@ -75,7 +84,8 @@ const episodesSlice = createSlice({
       })
       .addCase(fetchEpisodes.fulfilled, (state, action) => {
         state.loading = "succeeded";
-        state.entities = action.payload.results;
+        state.entities = [...state.entities, ...action.payload.results]
+        state.maxPage = action.payload.info.pages
       })
       .addCase(fetchEpisodes.rejected, (state, action) => {
         state.loading = "failed";
@@ -94,7 +104,7 @@ const episodesSlice = createSlice({
       })
       .addCase(fetchCharactersByEpisodeId.fulfilled, (state, action) => {
         state.characters = action.payload;
-      })
+      });
   },
 });
 
@@ -117,8 +127,8 @@ export const selectFilteredEpisodes = createSelector(
 
 export const selectEpisodesByIds = createSelector(
   [selectAllEpisodes, (state, episodeIds) => episodeIds],
-  (episodes, episodeIds) => episodes.filter(episode => episodeIds.includes(episode.id.toString()))
+  (episodes, episodeIds) =>
+    episodes.filter((episode) => episodeIds.includes(episode.id.toString())),
 );
-
 
 export default episodesSlice.reducer;

@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import styles from "./mainCharacterDetail.module.scss";
 import { fetchCharacters } from "../../store/characterSlice";
-import {fetchEpisodes, selectEpisodesByIds} from "../../store/episodeSlice";
+import { fetchEpisodes, selectEpisodesByIds } from "../../store/episodeSlice";
 import { GoBackLink, EpisodeCard } from "../";
 import { INFORMATION_FIELDS } from "./constants";
 import { extractNumbersFromEnd } from "./helpers";
@@ -14,19 +14,20 @@ export const MainCharacterDetail = () => {
   const characterLoading = useSelector((state) => state.characters.loading);
   const episodeLoading = useSelector((state) => state.episodes.loading);
   const character = useSelector((state) =>
-  state.characters.entities.find((char) => char.id.toString() === characterId)
-);
+    state.characters.entities.find((char) => char.id.toString() === characterId)
+  );
 
   useEffect(() => {
     dispatch(fetchEpisodes());
   }, [dispatch]);
 
   const episodeIds = useMemo(() => {
-    return character?.episode.map((url) => url.split('/').pop()) || [];
+    return character?.episode.map((url) => url.split("/").pop()) || [];
   }, [character]);
 
-  const episodesForCharacter = useSelector((state) => selectEpisodesByIds(state, episodeIds));
-
+  const episodesForCharacter = useSelector((state) =>
+    selectEpisodesByIds(state, episodeIds)
+  );
 
   useEffect(() => {
     if (characterLoading === "idle") {
@@ -40,8 +41,6 @@ export const MainCharacterDetail = () => {
   const nameCharacter = useMemo(() => {
     if (characterLoading === "succeeded" && character) return character.name;
   }, [character, characterLoading]);
-
-
 
   const informationContent = useMemo(() => {
     if (characterLoading === "succeeded" && character) {
@@ -58,7 +57,9 @@ export const MainCharacterDetail = () => {
               <Link
                 to={`/${extractNumbersFromEnd(field.url).join("/")}`}
                 key={key}
-                className={`${styles.informationItem} ${isLink ? styles.linkedItem : ""}`}
+                className={`${styles.informationItem} ${
+                  isLink ? styles.linkedItem : ""
+                }`}
               >
                 <dt className={styles.dt}>
                   {item[0].toUpperCase() + item.slice(1)}
@@ -70,7 +71,9 @@ export const MainCharacterDetail = () => {
           return (
             <div
               key={key}
-              className={`${styles.informationItem} ${isLink ? styles.linkedItem : ""}`}
+              className={`${styles.informationItem} ${
+                isLink ? styles.linkedItem : ""
+              }`}
             >
               <dt className={styles.dt}>
                 {item[0].toUpperCase() + item.slice(1)}
@@ -95,14 +98,23 @@ export const MainCharacterDetail = () => {
       ) : (
         <div className={styles.error}>Character not found</div>
       ),
-    [character, imageSrc, nameCharacter],
+    [character, imageSrc, nameCharacter]
   );
 
   const episodesContent = useMemo(() => {
-    if (episodeLoading === 'succeeded') {
-      return episodesForCharacter.map((episode) => (
-        <EpisodeCard episodeData={episode} key={episode.id} />
-      ));
+    if (episodeLoading === "succeeded") {
+      return episodesForCharacter.map(
+        ({ id, episode, name, air_date }) => (
+          <Link
+            to={`/episodes/${id}`}
+            className={`${styles.episodeDetails} ${styles.linkedItem}`}
+          >
+            <span className={styles.episodeEpisode}>{episode}</span>
+            <span className={styles.episodeNames}>{name}</span> 
+            <span className={styles.episodeDate}>{air_date}</span>
+          </Link>
+        )
+      );
     }
     return <p>Loading episodes...</p>;
   }, [episodesForCharacter, episodeLoading]);
@@ -120,11 +132,9 @@ export const MainCharacterDetail = () => {
           <h3 className={styles.title}>Information</h3>
           <dl>{informationContent}</dl>
         </section>
-        <section className={styles.information}>
+        <section className={styles.informationSection}>
           <h3 className={styles.title}>Episodes</h3>
-          <div>
-          {episodesContent}
-          </div>
+          <div >{episodesContent}</div>
         </section>
       </section>
     </main>
