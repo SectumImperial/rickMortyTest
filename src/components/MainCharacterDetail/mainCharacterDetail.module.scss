@@ -40,12 +40,20 @@
   margin-top: 16px;
 }
 
+.information {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
 .informationSection {
   display: flex;
   justify-content: space-between;
   margin-bottom: 36px;
   flex-direction: column;
   max-width: 413px;
+  flex-grow: 1;
 }
 
 .title {
@@ -103,6 +111,10 @@
   transition: all ease-out 0.1s;
 }
 
+
+.episodeContent {
+  padding: 36px 5px;
+}
 .episodeDetails {
   max-width: 413px;
   font-family: variables.$fontMain;

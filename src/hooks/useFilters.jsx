@@ -1,5 +1,8 @@
 import { useDispatch } from "react-redux";
-import { setCharacterFilter, resetCharacterFilters } from "../store/characterSlice";
+import {
+  setCharacterFilter,
+  resetCharacterFilters,
+} from "../store/characterSlice";
 import {
   setLocationsFilter,
   resetLocationsFilters,

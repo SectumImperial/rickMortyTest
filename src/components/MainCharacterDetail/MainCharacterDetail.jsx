@@ -2,9 +2,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import styles from "./mainCharacterDetail.module.scss";
-import { fetchCharacters } from "../../store/characterSlice";
-import { fetchEpisodes, selectEpisodesByIds } from "../../store/episodeSlice";
-import { GoBackLink, EpisodeCard } from "../";
+import { fetchCharacters, fetchCharacterById } from "../../store/characterSlice";
+import { fetchEpisodes } from "../../store/episodeSlice";
+import { GoBackLink } from "../";
 import { INFORMATION_FIELDS } from "./constants";
 import { extractNumbersFromEnd } from "./helpers";
 
@@ -13,27 +13,26 @@ export const MainCharacterDetail = () => {
   const { characterId } = useParams();
   const characterLoading = useSelector((state) => state.characters.loading);
   const episodeLoading = useSelector((state) => state.episodes.loading);
-  const character = useSelector((state) =>
-    state.characters.entities.find((char) => char.id.toString() === characterId)
-  );
+  const character = useSelector((state) => state.characters.currentCharacter)
+
+  const episodes = useSelector((state) => state.episodes.entities);
+
+
+    const uniqueEpisodesMap = new Map();
+
+    episodes.forEach(episode => {
+      uniqueEpisodesMap.set(episode.id, episode);
+    });
+
+  const uniqueEpisodes = Array.from(uniqueEpisodesMap.values());
 
   useEffect(() => {
     dispatch(fetchEpisodes());
   }, [dispatch]);
 
-  const episodeIds = useMemo(() => {
-    return character?.episode.map((url) => url.split("/").pop()) || [];
-  }, [character]);
-
-  const episodesForCharacter = useSelector((state) =>
-    selectEpisodesByIds(state, episodeIds)
-  );
-
   useEffect(() => {
-    if (characterLoading === "idle") {
-      dispatch(fetchCharacters());
-    }
-  }, [characterLoading, dispatch]);
+    dispatch(fetchCharacterById(characterId));
+  }, [dispatch, characterId]);
 
   const imageSrc = useMemo(() => {
     if (characterLoading === "succeeded" && character) return character.image;
@@ -90,7 +89,7 @@ export const MainCharacterDetail = () => {
 
   const mainCharacterInfo = useMemo(
     () =>
-      character ? (
+      character && characterLoading === "succeeded" ? (
         <>
           <img src={imageSrc} className={styles.image} alt={nameCharacter} />
           <h1 className={styles.name}>{nameCharacter}</h1>
@@ -98,15 +97,16 @@ export const MainCharacterDetail = () => {
       ) : (
         <div className={styles.error}>Character not found</div>
       ),
-    [character, imageSrc, nameCharacter]
+    [character, imageSrc, nameCharacter, characterLoading]
   );
 
   const episodesContent = useMemo(() => {
     if (episodeLoading === "succeeded") {
-      return episodesForCharacter.map(
+      return uniqueEpisodes.map(
         ({ id, episode, name, air_date }) => (
           <Link
             to={`/episodes/${id}`}
+            key={id}
             className={`${styles.episodeDetails} ${styles.linkedItem}`}
           >
             <span className={styles.episodeEpisode}>{episode}</span>
@@ -117,7 +117,7 @@ export const MainCharacterDetail = () => {
       );
     }
     return <p>Loading episodes...</p>;
-  }, [episodesForCharacter, episodeLoading]);
+  }, [uniqueEpisodes, episodeLoading]);
 
   return (
     <main className={styles.main}>
@@ -134,7 +134,7 @@ export const MainCharacterDetail = () => {
         </section>
         <section className={styles.informationSection}>
           <h3 className={styles.title}>Episodes</h3>
-          <div >{episodesContent}</div>
+          <div className={styles.episodeContent}>{episodesContent}</div>
         </section>
       </section>
     </main>

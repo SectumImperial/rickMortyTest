@@ -105,3 +105,9 @@
     margin-bottom: $margin;
   }
 }
+
+@mixin upToButton {
+  position: fixed;
+  bottom: 12%;
+  right: 13%;
+}

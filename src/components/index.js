@@ -21,9 +21,11 @@ export { MainLocationDetail } from "./MainLocationDetail/MainLocationDetail";
 
 export { EpisodesCards } from "./EpisodesCards/EpisodesCards";
 export { EpisodeCard } from "./EpisodeCard/EpisodeCard";
+export { MainEpisodeDetail } from "./MainEpisodeDetail/MainEpisodeDetail";
 
 export { FiltersModal } from "./FiltersModal/FiltersModal";
 export { AdvancedFiltersButton } from "./AdvancedFiltersButton/AdvancedFiltersButton";
 
 export { Loading } from "./Loading/Loading";
 export { GoBackLink } from "./GoBackLink/GoBackLink";
+export { UpToButton } from "./UpToButton/UpToButton";

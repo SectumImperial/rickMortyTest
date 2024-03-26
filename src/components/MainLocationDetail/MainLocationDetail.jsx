@@ -1,9 +1,11 @@
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { GoBackLink, CharacterCard } from "../";
-import { fetchLocations, fetchCharactersByIds } from "../../store/locationsSlice";
-import { selectCharactersByIds } from "../../store/characterSlice";
+import {
+  fetchLocations,
+  fetchCharactersByIds,
+} from "../../store/locationsSlice";
 import styles from "./mainLocationDetail.module.scss";
 
 export function MainLocationDetail() {
@@ -14,25 +16,18 @@ export function MainLocationDetail() {
   const location = useSelector((state) =>
     state.locations.entities.find((loc) => loc.id.toString() === locationId),
   );
-
+  const residents = useSelector((state) => state.locations.residentsData);
   useEffect(() => {
     if (locationLoading === "succeeded" && location && location.residents) {
       dispatch(fetchCharactersByIds(location.residents));
     }
   }, [dispatch, locationLoading, location]);
-  
-  useEffect(() => {
-    if (locationLoading === "succeeded" && location?.residents?.length > 0) {
-      dispatch(fetchCharactersByIds(location.residents));
-    }
-      }, [dispatch, locationLoading, location
-    ?.residents]);
 
-    const residentIds = useMemo(() => {
-      return location?.residents?.map(url => url.split('/').pop()) || [];
-      }, [location]);
-      
-    const characters = useSelector((state) => selectCharactersByIds(state, residentIds));
+  useEffect(() => {
+    if (locationLoading === "idle") {
+      dispatch(fetchLocations());
+    }
+  }, [locationLoading, dispatch]);
 
   const nameLocation = useMemo(() => {
     if (locationLoading === "succeeded" && location) return location.name;
@@ -45,12 +40,6 @@ export function MainLocationDetail() {
   const typeDimension = useMemo(() => {
     if (locationLoading === "succeeded" && location) return location.dimension;
   }, [location, locationLoading]);
-
-  useEffect(() => {
-    if (locationLoading === "idle") {
-      dispatch(fetchLocations());
-    }
-  }, [locationLoading, dispatch]);
 
   const mainLocationInfo = useMemo(
     () =>
@@ -74,6 +63,20 @@ export function MainLocationDetail() {
     [location, nameLocation, typeDimension, typeLocation],
   );
 
+  const residentContent = useMemo(
+    () =>
+      residents ? (
+        <>
+          {residents.map((resident) => (
+              <CharacterCard character={resident} />
+          ))}
+        </>
+      ) : (
+        <div className={styles.error}>Loading residents...</div>
+      ),
+    [residents],
+  );
+
   return (
     <main className={styles.main}>
       <div className={styles.top}>
@@ -84,11 +87,7 @@ export function MainLocationDetail() {
       </div>
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Residents</h3>
-        {/* <div> {residents.map(resident => (
-      <Link to={`/characters/${resident.id}`} key={resident.id}>
-        <CharacterCard character={resident} />
-      </Link>
-    ))}</div> */}
+        <section className={styles.residentCards}>{residentContent}</section>
       </section>
     </main>
   );

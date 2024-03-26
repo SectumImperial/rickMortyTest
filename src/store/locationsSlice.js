@@ -13,10 +13,10 @@ export const fetchLocations = createAsyncThunk(
     }).toString();
 
     const response = await axios.get(
-      `https://rickandmortyapi.com/api/location/?${queryParams}`
+      `https://rickandmortyapi.com/api/location/?${queryParams}`,
     );
     return response.data;
-  }
+  },
 );
 
 export const fetchCharactersByIds = createAsyncThunk(
@@ -24,18 +24,20 @@ export const fetchCharactersByIds = createAsyncThunk(
   async (residentUrls) => {
     const ids = residentUrls.map((url) => url.split("/").pop());
     const response = await axios.get(
-      `https://rickandmortyapi.com/api/character/${ids}`
+      `https://rickandmortyapi.com/api/character/${ids}`,
     );
     return response.data;
-  }
+  },
 );
 
 const initialState = {
   maxPage: 2,
   entities: [],
-  charactersByIds: {},
+  residentsData: [],
   loading: "idle",
+  residentLoading: "idle",
   error: null,
+  errorResident: null,
   filters: JSON.parse(localStorage.getItem("locationsFilters")) || {
     name: "",
     type: "",
@@ -72,15 +74,21 @@ const locationsSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(fetchCharactersByIds.fulfilled, (state, action) => {
-        const residentUrls = action.meta.arg;
-        const residentsData = action.payload;
-        residentUrls.forEach((url, index) => {
-          const id = url.split("/").pop();
-          if (!state.charactersByIds[id]) {
-            state.charactersByIds[id] = [];
-          }
-          state.charactersByIds[id].push(residentsData[index]);
+        const residentsData = Array.isArray(action.payload) ? action.payload : [action.payload];
+        const newResidents = new Map(state.residentsData.map(resident => [resident.id, resident]));
+      
+        residentsData.forEach(resident => {
+          newResidents.set(resident.id, resident);
         });
+      
+        state.residentsData = Array.from(newResidents.values());
+      })
+      .addCase(fetchCharactersByIds.rejected, (state, action) => {
+        state.residentLoading = "failed";
+        state.errorResident = action.error.message;
+      })
+      .addCase(fetchCharactersByIds.pending, (state) => {
+        state.residentLoading = "loading";
       });
   },
 });
@@ -97,7 +105,7 @@ export const selectFilteredLocations = (state) => {
       (!filters.name ||
         location.name.toLowerCase().includes(filters.name.toLowerCase())) &&
       (!filters.type || location.type === filters.type) &&
-      (!filters.dimension || location.dimension === filters.dimension)
+      (!filters.dimension || location.dimension === filters.dimension),
   );
 };
 

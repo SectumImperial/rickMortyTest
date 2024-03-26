@@ -16,6 +16,13 @@
   font-size: 36px;
 }
 
+.episodesInfo {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .dl {
   display: flex;
   width: 100%;
@@ -31,23 +38,8 @@
   margin: 0;
 }
 
-.locationsInfo {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .sectionTitle {
   @include mixins.fontMain500;
   font-size: 20px;
   color: #8e8e93;
-}
-
-.residentLink {
-  text-decoration: none;
-}
-
-.residentCards {
-  @include mixins.mainCardsStyle;
 }

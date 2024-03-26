@@ -8,7 +8,7 @@ export function FilterInput({
   text = "Filter by name...",
   filterName,
   action,
-  type = "characterFilters"
+  type = "characterFilters",
 }) {
   const { updateFilter } = useFilters(type);
   const filters = useSelector(action);

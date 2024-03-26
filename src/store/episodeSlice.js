@@ -5,38 +5,29 @@ import axios from "axios";
 export const fetchEpisodes = createAsyncThunk(
   "episodes/fetchEpisodes",
   async (filters, { getState }) => {
-    const { episodes: { filters: currentFilters } } = getState();
+    const {
+      episodes: { filters: currentFilters },
+    } = getState();
     const queryParams = new URLSearchParams({
       ...currentFilters,
-      ...filters, 
+      ...filters,
     }).toString();
-    
+
     const response = await axios.get(
-      `https://rickandmortyapi.com/api/episode/?${queryParams}`
+      `https://rickandmortyapi.com/api/episode/?${queryParams}`,
     );
     return response.data;
-  }
+  },
 );
 
-
-// export const fetchEpisodesByIds = createAsyncThunk(
-//   "episodes/fetchByIds",
-//   async (episodeIds) => {
-//     const requests = episodeIds.map((id) =>
-//       axios.get(`https://rickandmortyapi.com/api/episode/${id}`),
-//     );
-//     const responses = await Promise.all(requests);
-//     return responses.map((response) => response.data);
-//   },
-// );
-
-export const fetchEpisodeById = createAsyncThunk(
-  "episodes/fetchEpisodeById",
-  async (episodeId) => {
-    const response = await axios.get(
-      `https://rickandmortyapi.com/api/episode/${episodeId}`,
+export const fetchEpisodesByIds = createAsyncThunk(
+  "episodes/fetchByIds",
+  async (episodeIds) => {
+    const requests = episodeIds.map((id) =>
+      axios.get(`https://rickandmortyapi.com/api/episode/${id}`),
     );
-    return response.data;
+    const responses = await Promise.all(requests);
+    return responses.map((response) => response.data);
   },
 );
 
@@ -84,21 +75,27 @@ const episodesSlice = createSlice({
       })
       .addCase(fetchEpisodes.fulfilled, (state, action) => {
         state.loading = "succeeded";
-        state.entities = [...state.entities, ...action.payload.results]
-        state.maxPage = action.payload.info.pages
+  const newEpisodes = new Map(state.entities.map(episode => [episode.id, episode]));
+
+  action.payload.results.forEach(episode => {
+    newEpisodes.set(episode.id, episode);
+  });
+
+  state.entities = Array.from(newEpisodes.values());
+  state.maxPage = action.payload.info.pages;
       })
       .addCase(fetchEpisodes.rejected, (state, action) => {
         state.loading = "failed";
         state.error = action.error.message;
       })
-      .addCase(fetchEpisodeById.pending, (state) => {
+      .addCase(fetchEpisodesByIds.pending, (state) => {
         state.loading = "loading";
       })
-      .addCase(fetchEpisodeById.fulfilled, (state, action) => {
+      .addCase(fetchEpisodesByIds.fulfilled, (state, action) => {
         state.currentEpisode = action.payload;
         state.loading = "succeeded";
       })
-      .addCase(fetchEpisodeById.rejected, (state, action) => {
+      .addCase(fetchEpisodesByIds.rejected, (state, action) => {
         state.loading = "failed";
         state.error = action.error.message;
       })
@@ -127,8 +124,11 @@ export const selectFilteredEpisodes = createSelector(
 
 export const selectEpisodesByIds = createSelector(
   [selectAllEpisodes, (state, episodeIds) => episodeIds],
-  (episodes, episodeIds) =>
-    episodes.filter((episode) => episodeIds.includes(episode.id.toString())),
+  (episodes, episodeIds) => {
+    return episodes.filter((episode) =>
+      episodeIds.includes(String(episode.id)),
+    );
+  },
 );
 
 export default episodesSlice.reducer;

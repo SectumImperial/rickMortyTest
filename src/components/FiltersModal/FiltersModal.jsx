@@ -80,7 +80,11 @@ export function FiltersModal({ modalData }) {
                 </li>
               ))}
             </ul>
-            <ApplyButtonStyle variant="contained" disableRipple onClick={handleClose}>
+            <ApplyButtonStyle
+              variant="contained"
+              disableRipple
+              onClick={handleClose}
+            >
               Apply
             </ApplyButtonStyle>
           </div>

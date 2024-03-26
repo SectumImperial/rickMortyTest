@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./mainEpisodes.module.scss";
 import {
@@ -6,23 +6,63 @@ import {
   selectFilteredEpisodes,
   selectEpisodeFilters,
 } from "../../store/episodeSlice";
-import { ITEMS_PER_PAGE } from "./constants";
-import { Hero, FilterInput, LoadMoreButton, EpisodesCards, Loading } from "..";
+import { ITEMS_PER_PAGE_INITIAL } from "./constants";
+import {
+  Hero,
+  FilterInput,
+  LoadMoreButton,
+  EpisodesCards,
+  Loading,
+  UpToButton,
+} from "..";
 
 export function MainEpisodes() {
   const dispatch = useDispatch();
+
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
+  const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const loadMoreRef = useRef(null);
+  const heroImage = useRef(null);
+
   const episodes = useSelector(selectFilteredEpisodes);
-  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
   const episodeLoading = useSelector((state) => state.episodes.loading);
+  const maxPage = useSelector((state) => state.episodes.maxPage);
+
+  const prevPageRef = useRef();
+  useEffect(() => {
+    if (prevPageRef.current !== currentPage) {
+      dispatch(fetchEpisodes({ page: currentPage }));
+    }
+    prevPageRef.current = currentPage;
+  }, [dispatch, currentPage]);
 
   useEffect(() => {
-    if (episodeLoading === "idle") {
-      dispatch(fetchEpisodes());
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsUpToButtonVisible(scrollTop > window.innerHeight / 2);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (episodeLoading === "succeeded") {
+      loadMoreRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [episodeLoading, dispatch]);
+  }, [episodes.length, episodeLoading]);
+
+  const handleUpButtonClick = useCallback(() => {
+    heroImage.current?.scrollIntoView({ behavior: "smooth" });
+    setIsUpToButtonVisible(false);
+  }, []);
 
   const handleLoadMoreClick = useCallback(() => {
-    setItemsPerPage((prev) => prev + ITEMS_PER_PAGE);
+    setCurrentPage((prev) => prev + 1);
+    setItemsPerPage((prev) => prev + ITEMS_PER_PAGE_INITIAL);
   }, []);
 
   const content = useMemo(() => {
@@ -37,7 +77,7 @@ export function MainEpisodes() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.hero}>
+      <div className={styles.hero} ref={heroImage}>
         <Hero className={styles.heroImage} type="rickAndMorty" />
       </div>
       <ul className={styles.filterList}>
@@ -51,14 +91,21 @@ export function MainEpisodes() {
         </li>
       </ul>
       <section className={styles.contentCard}>{content}</section>
-      {episodeLoading !== "loading" && episodes.length > itemsPerPage && (
-        <div
-          className={styles.loadMoreButtonContainer}
-          onClick={handleLoadMoreClick}
-        >
-          {episodes.length > itemsPerPage && (
-            <LoadMoreButton onClick={handleLoadMoreClick} />
-          )}
+      {episodeLoading === "loading" && (
+        <div className={styles.loadingIndicator}>
+          <Loading />
+        </div>
+      )}
+      <div
+        ref={loadMoreRef}
+        className={styles.loadMoreButtonContainer}
+        onClick={handleLoadMoreClick}
+      >
+        {currentPage <= maxPage && <LoadMoreButton />}
+      </div>
+      {currentPage > 2 && isUpToButtonVisible && (
+        <div className={styles.upToButton} onClick={handleUpButtonClick}>
+          <UpToButton />
         </div>
       )}
     </main>

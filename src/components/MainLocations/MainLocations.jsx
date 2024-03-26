@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   selectAllLocations,
   fetchLocations,
@@ -18,29 +18,53 @@ import {
   LoadMoreButton,
   FiltersModal,
   Loading,
+  UpToButton,
 } from "..";
 
 export function MainLocations() {
   const dispatch = useDispatch();
   const allLocations = useSelector(selectAllLocations);
   const locations = useSelector(selectFilteredLocations);
+  const loadMoreRef = useRef(null);
+  const heroImage = useRef(null);
   const locationLoading = useSelector((state) => state.locations.loading);
-  const maxPage = useSelector(state => state.locations.maxPage)
+  const maxPage = useSelector((state) => state.locations.maxPage);
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
 
+  const prevPageRef = useRef();
   useEffect(() => {
-    dispatch(fetchLocations({ page: currentPage }));
+    if (prevPageRef.current !== currentPage) {
+      dispatch(fetchLocations({ page: currentPage }));
+    }
+    prevPageRef.current = currentPage;
   }, [dispatch, currentPage]);
 
+  useEffect(() => {
+    if (locationLoading === "succeeded") {
+      loadMoreRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [locations.length, locationLoading]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsUpToButtonVisible(scrollTop > window.innerHeight / 2);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const typeOptions = useMemo(
     () => getUniqueValues(allLocations, "type"),
-    [allLocations]
+    [allLocations],
   );
   const dimensionOptions = useMemo(
     () => getUniqueValues(allLocations, "dimension"),
-    [allLocations]
+    [allLocations],
   );
 
   const selectFilterLabels = useMemo(
@@ -52,7 +76,7 @@ export function MainLocations() {
         action: setLocationsFilter,
       },
     ],
-    [typeOptions, dimensionOptions]
+    [typeOptions, dimensionOptions],
   );
 
   const content = useMemo(() => {
@@ -66,14 +90,19 @@ export function MainLocations() {
     );
   }, [locations, itemsPerPage]);
 
-  const handleLoadMoreClick = () => {
+  const handleLoadMoreClick = useCallback(() => {
     setCurrentPage(currentPage + 1);
     setItemsPerPage(itemsPerPage + ITEMS_PER_PAGE_INITIAL);
-  };
+  });
+
+  const handleUpButtonClick = useCallback(() => {
+    heroImage.current?.scrollIntoView({ behavior: "smooth" });
+    setIsUpToButtonVisible(false);
+  }, []);
 
   return (
     <main className={styles.main}>
-      <div className={styles.hero}>
+      <div className={styles.hero} ref={heroImage}>
         <Hero className={styles.heroImage} type="circle" />
       </div>
       <ul className={styles.filterList}>
@@ -101,19 +130,24 @@ export function MainLocations() {
       <div className={styles.advancedFiltersButton}>
         <FiltersModal modalData={selectFilterLabels} />
       </div>
-
-      {locationLoading === "loading" ? (
-        <Loading />
-      ) : (
-        <section className={styles.contentCard}>{content}</section>
+      <section className={styles.contentCard}>{content}</section>
+      {locationLoading === "loading" && (
+        <div className={styles.loadingIndicator}>
+          <Loading />
+        </div>
       )}
-      <div />
       <div
         className={styles.loadMoreButtonContainer}
         onClick={handleLoadMoreClick}
+        ref={loadMoreRef}
       >
         {currentPage <= maxPage && <LoadMoreButton />}
       </div>
+      {currentPage > 2 && isUpToButtonVisible && (
+        <div className={styles.upToButton} onClick={handleUpButtonClick}>
+          <UpToButton />
+        </div>
+      )}
     </main>
   );
 }

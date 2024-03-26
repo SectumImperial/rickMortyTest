@@ -5,20 +5,28 @@ import {
 } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
 export const fetchCharacters = createAsyncThunk(
   "characters/fetchCharacters",
   async (filters, { getState }) => {
-    const { characters: { filters: currentFilters } } = getState();
+    const {
+      characters: { filters: currentFilters },
+    } = getState();
     const queryParams = new URLSearchParams({
       ...currentFilters,
-      ...filters, 
+      ...filters,
     }).toString();
-    
     const response = await axios.get(
-      `https://rickandmortyapi.com/api/character/?${queryParams}`
+      `https://rickandmortyapi.com/api/character/?${queryParams}`,
     );
     return response.data;
+  },
+);
+
+export const fetchCharacterById = createAsyncThunk(
+  "characters/fetchCharacterById",
+  async (characterId) => {
+    const response = await axios.get(`https://rickandmortyapi.com/api/character/${characterId}`);
+    return response.data; 
   }
 );
 
@@ -26,6 +34,7 @@ const initialState = {
   maxPage: 1,
   entities: [],
   charactersByIds: [],
+  currentCharacter: {},
   loading: "idle",
   byIdsLoading: "idle",
   error: null,
@@ -57,10 +66,27 @@ const charactersSlice = createSlice({
       })
       .addCase(fetchCharacters.fulfilled, (state, action) => {
         state.loading = "succeeded";
-        state.entities = [...state.entities, ...action.payload.results]
-        state.maxPage = action.payload.info.pages
+        const newCharacters = new Map(state.entities.map(char => [char.id, char]));
+
+        action.payload.results.forEach(char => {
+        newCharacters.set(char.id, char);
+        });
+
+  state.entities = Array.from(newCharacters.values());
+  state.maxPage = action.payload.info.pages;
       })
       .addCase(fetchCharacters.rejected, (state, action) => {
+        state.loading = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(fetchCharacterById.fulfilled, (state, action) => {
+        state.currentCharacter = action.payload; 
+        state.loading = "succeeded";
+      })
+      .addCase(fetchCharacterById.pending, (state) => {
+        state.loading = "loading";
+      })
+      .addCase(fetchCharacterById.rejected, (state, action) => {
         state.loading = "failed";
         state.error = action.error.message;
       });

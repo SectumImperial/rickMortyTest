@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styles from "./mainCharacters.module.scss";
 
 import { getUniqueValues } from "../../helpers/helpers";
-import { ITEMS_PER_PAGE_INITIAL} from "./constants";
+import { ITEMS_PER_PAGE_INITIAL } from "./constants";
 import {
   fetchCharacters,
   setCharacterFilter,
@@ -19,31 +19,36 @@ import {
   LoadMoreButton,
   FiltersModal,
   Loading,
+  UpToButton,
 } from "..";
-
-
 
 export function MainCharacters() {
   const dispatch = useDispatch();
   const loadMoreRef = useRef(null);
-  const filters = useSelector(selectCharactersFilters);
+  const heroImage = useRef(null);
   const characters = useSelector(selectFilteredCharacters);
   const allCharacters = useSelector(selectAllCharacters);
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
+  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false); 
 
-  const maxPage = useSelector((state) => state.characters.maxPage)
+  const maxPage = useSelector((state) => state.characters.maxPage);
   const characterLoading = useSelector((state) => state.characters.loading);
 
+  const prevPageRef = useRef();
   useEffect(() => {
-    dispatch(fetchCharacters({ page: currentPage }));
-  }, [dispatch, currentPage, filters]);
+
+      dispatch(fetchCharacters({ page: currentPage }));
+    
+  }, [dispatch, currentPage]);
 
   useEffect(() => {
-    if (characterLoading === "succeeded") {
+    if (isLoadMoreClicked) {
       loadMoreRef.current?.scrollIntoView({ behavior: "smooth" });
+      setIsLoadMoreClicked(false); 
     }
-  }, [characters.length, characterLoading]);
+  }, [characters.length, characterLoading, isLoadMoreClicked]);
 
   const statusOptions = useMemo(
     () => getUniqueValues(allCharacters, "status"),
@@ -58,9 +63,26 @@ export function MainCharacters() {
     [allCharacters],
   );
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsUpToButtonVisible(scrollTop > window.innerHeight / 2);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleLoadMoreClick = useCallback(() => {
     setCurrentPage((prev) => prev + 1);
     setItemsPerPage((prev) => prev + ITEMS_PER_PAGE_INITIAL);
+    setIsLoadMoreClicked(true); 
+  }, []);
+
+  const handleUpButtonClick = useCallback(() => {
+    heroImage.current?.scrollIntoView({ behavior: "smooth" });
+    setIsUpToButtonVisible(false);
   }, []);
 
   const selectFilterLabels = useMemo(
@@ -75,20 +97,20 @@ export function MainCharacters() {
   const content = useMemo(() => {
     return characters.length > 0 ? (
       <CharactersCards characters={characters.slice(0, itemsPerPage)} />
+    ) : characterLoading === "succeeded" ? (
+      <section className={styles.notFiltersMessage}>
+        <p>Nothing found. Try other filters.</p>
+      </section>
     ) : (
-      characterLoading === "succeeded" ? <section className={styles.loading}>
-      <p>Nothing found. Try other filters.</p>
-    </section> : 
       <section className={styles.loading}>
         <Loading />
       </section>
     );
   }, [characters, itemsPerPage, characterLoading]);
-  
 
   return (
     <main className={styles.main}>
-      <div className={styles.hero}>
+      <div className={styles.hero} ref={heroImage}>
         <Hero className={styles.heroImage} />
       </div>
       <ul className={styles.filterList}>
@@ -122,9 +144,18 @@ export function MainCharacters() {
           <Loading />
         </div>
       )}
- <div ref={loadMoreRef} className={styles.loadMoreButtonContainer} onClick={handleLoadMoreClick}>
+      <div
+        ref={loadMoreRef}
+        className={styles.loadMoreButtonContainer}
+        onClick={handleLoadMoreClick}
+      >
         {currentPage <= maxPage && <LoadMoreButton />}
       </div>
+      {currentPage > 2 && isUpToButtonVisible && (
+        <div className={styles.upToButton} onClick={handleUpButtonClick}>
+          <UpToButton />
+        </div>
+      )}
     </main>
   );
 }
