@@ -13,20 +13,41 @@ export const fetchEpisodes = createAsyncThunk(
   },
 );
 
-export const fetchEpisodesByIds = createAsyncThunk(
-  "episodes/fetchByIds",
+// export const fetchEpisodesByIds = createAsyncThunk(
+//   "episodes/fetchByIds",
+//   async (episodeIds) => {
+//     const requests = episodeIds.map((id) =>
+//       axios.get(`https://rickandmortyapi.com/api/episode/${id}`),
+//     );
+//     const responses = await Promise.all(requests);
+//     return responses.map((response) => response.data);
+//   },
+// );
+
+export const fetchEpisodeById = createAsyncThunk(
+  "episodes/fetchEpisodeById",
+  async (episodeId) => {
+    const response = await axios.get(`https://rickandmortyapi.com/api/episode/${episodeId}`);
+    return response.data;
+  }
+);
+
+export const fetchCharactersByEpisodeId = createAsyncThunk(
+  "episodes/fetchCharactersByEpisodeId",
   async (episodeIds) => {
     const requests = episodeIds.map((id) =>
-      axios.get(`https://rickandmortyapi.com/api/episode/${id}`),
+      axios.get(`https://rickandmortyapi.com/api/character/${id}`)
     );
     const responses = await Promise.all(requests);
     return responses.map((response) => response.data);
-  },
+  }
 );
 
 const initialState = {
   entities: [],
   loading: "idle",
+  currentEpisode: null, 
+  characters: [],   
   error: null,
   filters: JSON.parse(localStorage.getItem("episodeFilters")) || {
     name: "",
@@ -59,7 +80,21 @@ const episodesSlice = createSlice({
       .addCase(fetchEpisodes.rejected, (state, action) => {
         state.loading = "failed";
         state.error = action.error.message;
-      });
+      })
+      .addCase(fetchEpisodeById.pending, (state) => {
+        state.loading = "loading";
+      })
+      .addCase(fetchEpisodeById.fulfilled, (state, action) => {
+        state.currentEpisode = action.payload;
+        state.loading = "succeeded";
+      })
+      .addCase(fetchEpisodeById.rejected, (state, action) => {
+        state.loading = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(fetchCharactersByEpisodeId.fulfilled, (state, action) => {
+        state.characters = action.payload;
+      })
   },
 });
 

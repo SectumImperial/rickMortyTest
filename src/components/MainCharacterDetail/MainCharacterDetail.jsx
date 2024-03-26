@@ -4,7 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import styles from "./mainCharacterDetail.module.scss";
 import { fetchCharacters } from "../../store/characterSlice";
 import {fetchEpisodes, selectEpisodesByIds} from "../../store/episodeSlice";
-import { GoBackLink } from "../";
+import { GoBackLink, EpisodeCard } from "../";
 import { INFORMATION_FIELDS } from "./constants";
 import { extractNumbersFromEnd } from "./helpers";
 
@@ -101,9 +101,7 @@ export const MainCharacterDetail = () => {
   const episodesContent = useMemo(() => {
     if (episodeLoading === 'succeeded') {
       return episodesForCharacter.map((episode) => (
-        <Link to={`/episodes/${episode.id}`} key={episode.id} className={styles.episodeLink}>
-          {episode.name} ({episode.episode})
-        </Link>
+        <EpisodeCard episodeData={episode} key={episode.id} />
       ));
     }
     return <p>Loading episodes...</p>;

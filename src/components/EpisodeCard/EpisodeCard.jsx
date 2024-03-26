@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 
 export function EpisodeCard({ episodeData }) {
   const { name, air_date, episode, id } = episodeData;
+  console.log(episodeData)
   const episodeLink = `/episodes/${id}`;
   return (
     <Link to={episodeLink} className={styles.cardLink}>

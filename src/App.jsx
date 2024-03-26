@@ -44,6 +44,10 @@ const App = () => (
             path="/locations/:locationId"
             element={<MainLocationDetail />}
           />
+          {/* <Route
+            path="/episodes/:episodeId"
+            element={<MainEpisodesDetail />}
+          /> */}
           <Route path="/" element={<Navigate to="/characters" replace />} />
         </Routes>
         <Footer />
