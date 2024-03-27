@@ -32,3 +32,7 @@
   margin-top: 46px;
   margin-bottom: 27px;
 }
+
+.upToButton {
+  @include mixins.upToButton;
+}

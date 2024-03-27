@@ -1,41 +1,52 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import styles from "./mainEpisodeDetail.module.scss";
-import { selectAllCharacters } from "../../store/characterSlice";
-import { GoBackLink } from "..";
+import { fetchCharactersByIds } from "../../store/characterSlice";
+import { GoBackLink, CharacterCard, Loading } from "..";
 import { fetchEpisodesByIds } from "../../store/episodeSlice";
 
 export const MainEpisodeDetail = () => {
-  const { episodeId } = useParams();
   const dispatch = useDispatch();
-  const charactersInStore = useSelector(selectAllCharacters);
+  const { episodeId } = useParams();
+  const top = useRef(null);
 
   const episodeLoading = useSelector((state) => state.episodes.loading);
+  const casts = useSelector((state) => state.characters.charactersByIds);
 
   const episode = useSelector((state) =>
-    state.episodes.entities.find(
+    state.episodes.episodesByIds.find(
       (episode) => episode.id.toString() === episodeId,
     ),
   );
 
+  useEffect(() => {
+    if (episodeLoading || !episode) {
+      dispatch(fetchEpisodesByIds(episodeId));
+    }
+  }, [episodeLoading, dispatch, episode, episodeId]);
+
+  useEffect(() => {
+    if (!episodeLoading && episode && episode.characters) {
+      dispatch(fetchCharactersByIds(episode.characters));
+    }
+  }, [dispatch, episodeLoading, episode]);
+
+  useEffect(() => {
+    top.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
   const nameEpisode = useMemo(() => {
-    if (episodeLoading === "succeeded" && episode) return episode.name;
+    if (!episodeLoading && episode) return episode.name;
   }, [episode, episodeLoading]);
 
   const episodeNumber = useMemo(() => {
-    if (episodeLoading === "succeeded" && episode) return episode.episode;
+    if (!episodeLoading && episode) return episode.episode;
   }, [episode, episodeLoading]);
 
   const airDate = useMemo(() => {
-    if (episodeLoading === "succeeded" && episode) return episode.air_date;
+    if (!episodeLoading && episode) return episode.air_date;
   }, [episode, episodeLoading]);
-
-  useEffect(() => {
-    if (episodeLoading === "idle") {
-      dispatch(fetchEpisodesByIds());
-    }
-  }, [episodeLoading, dispatch]);
 
   const mainEpisodeInfo = useMemo(
     () =>
@@ -43,11 +54,11 @@ export const MainEpisodeDetail = () => {
         <>
           <h1 className={styles.name}>{nameEpisode}</h1>
           <dl className={styles.dl}>
-            <div className={styles.locationInfoItem}>
+            <div className={styles.episodeInfoItem}>
               <dt className={styles.dt}>Episode</dt>
               <dd className={styles.dd}>{episodeNumber}</dd>
             </div>
-            <div className={styles.locationInfoItem}>
+            <div className={styles.episodeInfoItem}>
               <dt className={styles.dt}>Date</dt>
               <dd className={styles.dd}>{airDate}</dd>
             </div>
@@ -59,9 +70,25 @@ export const MainEpisodeDetail = () => {
     [episode, nameEpisode, episodeNumber, airDate],
   );
 
+  const castContent = useMemo(
+    () =>
+      casts && casts.length > 0 ? (
+        <>
+          {casts.map((cast) => (
+            <CharacterCard character={cast} />
+          ))}
+        </>
+      ) : (
+        <div className={styles.loading}>
+          <Loading />
+        </div>
+      ),
+    [casts],
+  );
+
   return (
     <main className={styles.main}>
-      <div className={styles.top}>
+      <div className={styles.top} ref={top}>
         <nav className={styles.nav}>
           <GoBackLink url="/episodes" />
         </nav>
@@ -69,11 +96,7 @@ export const MainEpisodeDetail = () => {
       </div>
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Cast</h3>
-        {/* <div> {residents.map(resident => (
-      <Link to={`/characters/${resident.id}`} key={resident.id}>
-        <CharacterCard character={resident} />
-      </Link>
-    ))}</div> */}
+        <section className={styles.castCards}>{castContent}</section>
       </section>
     </main>
   );

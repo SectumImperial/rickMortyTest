@@ -1,4 +1,8 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
 import axios from "axios";
 
 export const fetchLocations = createAsyncThunk(
@@ -19,12 +23,14 @@ export const fetchLocations = createAsyncThunk(
   },
 );
 
-export const fetchCharactersByIds = createAsyncThunk(
-  "locations/fetchCharactersByIds",
-  async (residentUrls) => {
-    const ids = residentUrls.map((url) => url.split("/").pop());
+export const fetchLocationsByIds = createAsyncThunk(
+  "locations/fetchLocationsByIds",
+  async (locationIds) => {
+    const ids = Array.isArray(locationIds)
+      ? locationIds.map((url) => url.split("/").pop())
+      : locationIds;
     const response = await axios.get(
-      `https://rickandmortyapi.com/api/character/${ids}`,
+      `https://rickandmortyapi.com/api/location/${ids}`,
     );
     return response.data;
   },
@@ -33,11 +39,11 @@ export const fetchCharactersByIds = createAsyncThunk(
 const initialState = {
   maxPage: 2,
   entities: [],
-  residentsData: [],
-  loading: "idle",
-  residentLoading: "idle",
+  locationsByIds: [],
+  loadingById: true,
+  loading: true,
   error: null,
-  errorResident: null,
+  errorStatus: null,
   filters: JSON.parse(localStorage.getItem("locationsFilters")) || {
     name: "",
     type: "",
@@ -62,33 +68,39 @@ const locationsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchLocations.pending, (state) => {
-        state.loading = "loading";
+        state.loading = true;
       })
       .addCase(fetchLocations.fulfilled, (state, action) => {
-        state.loading = "succeeded";
+        state.loading = false;
         state.entities = [...state.entities, ...action.payload.results];
         state.maxPage = action.payload.info.pages;
       })
       .addCase(fetchLocations.rejected, (state, action) => {
-        state.loading = "failed";
+        state.loading = false;
         state.error = action.error.message;
+        state.error = action.error.message;
+        state.errorStatus = action.error.code;
       })
-      .addCase(fetchCharactersByIds.fulfilled, (state, action) => {
-        const residentsData = Array.isArray(action.payload) ? action.payload : [action.payload];
-        const newResidents = new Map(state.residentsData.map(resident => [resident.id, resident]));
-      
-        residentsData.forEach(resident => {
-          newResidents.set(resident.id, resident);
+      .addCase(fetchLocationsByIds.fulfilled, (state, action) => {
+        const locationsData = Array.isArray(action.payload)
+          ? action.payload
+          : [action.payload];
+        const newLocations = new Map(
+          state.locationsByIds.map((location) => [location.id, location]),
+        );
+
+        locationsData.forEach((location) => {
+          newLocations.set(location.id, location);
         });
-      
-        state.residentsData = Array.from(newResidents.values());
+
+        state.locationsByIds = Array.from(newLocations.values());
+        state.loadingById = false;
+        state.error = null;
+        state.errorStatus = null;
       })
-      .addCase(fetchCharactersByIds.rejected, (state, action) => {
-        state.residentLoading = "failed";
-        state.errorResident = action.error.message;
-      })
-      .addCase(fetchCharactersByIds.pending, (state) => {
-        state.residentLoading = "loading";
+      .addCase(fetchLocationsByIds.rejected, (state, action) => {
+        state.loadingById = false;
+        state.error = action.error.message;
       });
   },
 });
@@ -98,15 +110,19 @@ export const { setLocationsFilter, resetLocationsFilters } =
 
 export const selectAllLocations = (state) => state.locations.entities;
 export const selectLocationsFilters = (state) => state.locations.filters;
-export const selectFilteredLocations = (state) => {
-  const { entities, filters } = state.locations;
-  return entities.filter(
-    (location) =>
-      (!filters.name ||
-        location.name.toLowerCase().includes(filters.name.toLowerCase())) &&
-      (!filters.type || location.type === filters.type) &&
-      (!filters.dimension || location.dimension === filters.dimension),
-  );
-};
+
+export const selectFilteredLocations = createSelector(
+  [(state) => state.locations],
+  (locations) => {
+    const { entities, filters } = locations;
+    return entities.filter(
+      (location) =>
+        (!filters.name ||
+          location.name.toLowerCase().includes(filters.name.toLowerCase())) &&
+        (!filters.type || location.type === filters.type) &&
+        (!filters.dimension || location.dimension === filters.dimension),
+    );
+  },
+);
 
 export default locationsSlice.reducer;

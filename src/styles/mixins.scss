@@ -84,16 +84,16 @@
 @mixin mainCardStyle {
   text-decoration: none;
   display: block;
-  width: 100%; 
-  max-width: 240px; 
-  margin: 0 auto; 
+  width: 100%;
+  max-width: 240px;
+  margin: 0 auto;
 
   &:hover {
     outline: 1px solid black;
   }
 
   @media (max-width: variables.$mobileScreen) {
-    max-width: 312px; 
+    max-width: 312px;
   }
 }
 
@@ -110,4 +110,11 @@
   position: fixed;
   bottom: 12%;
   right: 13%;
+}
+
+@mixin top {
+  display: flex;
+  @media (max-width: variables.$mobileScreen) {
+    flex-direction: column;
+  }
 }

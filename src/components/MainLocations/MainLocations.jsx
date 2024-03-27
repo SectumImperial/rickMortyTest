@@ -23,29 +23,35 @@ import {
 
 export function MainLocations() {
   const dispatch = useDispatch();
+
   const allLocations = useSelector(selectAllLocations);
   const locations = useSelector(selectFilteredLocations);
-  const loadMoreRef = useRef(null);
-  const heroImage = useRef(null);
   const locationLoading = useSelector((state) => state.locations.loading);
   const maxPage = useSelector((state) => state.locations.maxPage);
+  const error = useSelector((state) => state.locations.error);
+
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
   const [currentPage, setCurrentPage] = useState(1);
   const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
+  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
+  const [isNeedMore, setIsNeedMore] = useState(true);
 
-  const prevPageRef = useRef();
+  const loadMoreRef = useRef(null);
+  const heroImage = useRef(null);
+
   useEffect(() => {
-    if (prevPageRef.current !== currentPage) {
+    if (isNeedMore) {
       dispatch(fetchLocations({ page: currentPage }));
+      setIsNeedMore(false);
     }
-    prevPageRef.current = currentPage;
-  }, [dispatch, currentPage]);
+  }, [dispatch, currentPage, isNeedMore]);
 
   useEffect(() => {
-    if (locationLoading === "succeeded") {
+    if (isLoadMoreClicked) {
       loadMoreRef.current?.scrollIntoView({ behavior: "smooth" });
+      setIsLoadMoreClicked(false);
     }
-  }, [locations.length, locationLoading]);
+  }, [locations.length, locationLoading, isLoadMoreClicked]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,13 +97,19 @@ export function MainLocations() {
   }, [locations, itemsPerPage]);
 
   const handleLoadMoreClick = useCallback(() => {
+    if (error) return;
     setCurrentPage(currentPage + 1);
     setItemsPerPage(itemsPerPage + ITEMS_PER_PAGE_INITIAL);
-  });
+    setIsLoadMoreClicked(true);
+  }, [currentPage, itemsPerPage, error]);
 
   const handleUpButtonClick = useCallback(() => {
     heroImage.current?.scrollIntoView({ behavior: "smooth" });
     setIsUpToButtonVisible(false);
+  }, []);
+
+  const handleFiltersChange = useCallback(() => {
+    setIsNeedMore(true);
   }, []);
 
   return (
@@ -105,8 +117,11 @@ export function MainLocations() {
       <div className={styles.hero} ref={heroImage}>
         <Hero className={styles.heroImage} type="circle" />
       </div>
-      <ul className={styles.filterList}>
-        <li className={`${styles.filterItem} ${styles.filterField}`}>
+      <ul className={styles.filterList} onChange={handleFiltersChange}>
+        <li
+          key={"Filter"}
+          className={`${styles.filterItem} ${styles.filterField}`}
+        >
           <FilterInput
             filterName="name"
             text="Filter by name..."
@@ -115,7 +130,11 @@ export function MainLocations() {
           />
         </li>
         {selectFilterLabels.map((selectItem) => (
-          <li className={styles.filterSelect}>
+          <li
+            className={styles.filterSelect}
+            key={selectItem.label}
+            onClick={handleFiltersChange}
+          >
             <SelectField
               props={{
                 label: selectItem.label,
@@ -131,7 +150,7 @@ export function MainLocations() {
         <FiltersModal modalData={selectFilterLabels} />
       </div>
       <section className={styles.contentCard}>{content}</section>
-      {locationLoading === "loading" && (
+      {locationLoading && (
         <div className={styles.loadingIndicator}>
           <Loading />
         </div>

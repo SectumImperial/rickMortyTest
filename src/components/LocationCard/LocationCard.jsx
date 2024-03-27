@@ -12,8 +12,6 @@ export function LocationCard({ location }) {
     <Link to={locationsLink} className={styles.cardLink}>
       <Card
         sx={{
-          minWidth: 240,
-          minHeight: 128,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",

@@ -7,10 +7,10 @@
 }
 
 .top {
-  width: 100%;
   display: flex;
   padding-top: 16px;
   margin-bottom: 42px;
+  @include mixins.top;
 }
 
 .charactersInfo {
@@ -45,6 +45,7 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .informationSection {
@@ -111,7 +112,6 @@
   transition: all ease-out 0.1s;
 }
 
-
 .episodeContent {
   padding: 36px 5px;
 }
@@ -125,7 +125,7 @@
 
   border-bottom: 1px solid rgba(33, 33, 33, 0.08);
   padding-bottom: 15px;
-} 
+}
 
 .episodeEpisode {
   font-weight: 700;
@@ -144,4 +144,3 @@
   font-size: 10px;
   color: rgba(142, 142, 147, 1);
 }
-

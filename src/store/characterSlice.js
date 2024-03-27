@@ -7,6 +7,7 @@ import axios from "axios";
 
 export const fetchCharacters = createAsyncThunk(
   "characters/fetchCharacters",
+
   async (filters, { getState }) => {
     const {
       characters: { filters: currentFilters },
@@ -22,22 +23,26 @@ export const fetchCharacters = createAsyncThunk(
   },
 );
 
-export const fetchCharacterById = createAsyncThunk(
-  "characters/fetchCharacterById",
-  async (characterId) => {
-    const response = await axios.get(`https://rickandmortyapi.com/api/character/${characterId}`);
-    return response.data; 
-  }
+export const fetchCharactersByIds = createAsyncThunk(
+  "characters/fetchCharactersByIds",
+  async (residentUrls) => {
+    const ids = Array.isArray(residentUrls)
+      ? residentUrls.map((url) => url.split("/").pop())
+      : residentUrls;
+    const response = await axios.get(
+      `https://rickandmortyapi.com/api/character/${ids}`,
+    );
+    return response.data;
+  },
 );
 
 const initialState = {
   maxPage: 1,
   entities: [],
   charactersByIds: [],
-  currentCharacter: {},
-  loading: "idle",
-  byIdsLoading: "idle",
+  loading: null,
   error: null,
+  hasMore: true,
   filters: JSON.parse(localStorage.getItem("characterFilters")) || {
     name: "",
     species: "",
@@ -53,6 +58,7 @@ const charactersSlice = createSlice({
       const { filterName, value } = action.payload;
       state.filters[filterName] = value;
       localStorage.setItem("characterFilters", JSON.stringify(state.filters));
+      state.hasMore = true;
     },
     resetCharacterFilters(state) {
       state.filters = {};
@@ -62,33 +68,46 @@ const charactersSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchCharacters.pending, (state) => {
-        state.loading = "loading";
+        state.loading = true;
       })
       .addCase(fetchCharacters.fulfilled, (state, action) => {
-        state.loading = "succeeded";
-        const newCharacters = new Map(state.entities.map(char => [char.id, char]));
-
-        action.payload.results.forEach(char => {
-        newCharacters.set(char.id, char);
+        state.loading = false;
+        const newCharacters = new Map(state.entities.map((char) => [char.id, char]));
+      
+        action.payload.results.forEach((char) => {
+          newCharacters.set(char.id, char);
         });
-
-  state.entities = Array.from(newCharacters.values());
-  state.maxPage = action.payload.info.pages;
+      
+        state.entities = Array.from(newCharacters.values());
+        state.maxPage = action.payload.info.pages;
+        state.error = null;
+        state.hasMore = !!action.payload.info.next;
       })
       .addCase(fetchCharacters.rejected, (state, action) => {
-        state.loading = "failed";
+        state.loading = false;
         state.error = action.error.message;
       })
-      .addCase(fetchCharacterById.fulfilled, (state, action) => {
-        state.currentCharacter = action.payload; 
-        state.loading = "succeeded";
+      .addCase(fetchCharactersByIds.fulfilled, (state, action) => {
+        const charactersData = Array.isArray(action.payload)
+          ? action.payload
+          : [action.payload];
+        const newCharacters = new Map(
+          state.charactersByIds.map((character) => [character.id, character]),
+        );
+
+        charactersData.forEach((character) => {
+          newCharacters.set(character.id, character);
+        });
+
+        state.charactersByIds = Array.from(newCharacters.values());
+        state.loading = false;
       })
-      .addCase(fetchCharacterById.pending, (state) => {
-        state.loading = "loading";
+      .addCase(fetchCharactersByIds.rejected, (state, action) => {
+        state.loading = false;
+        state.errorResident = action.error.message;
       })
-      .addCase(fetchCharacterById.rejected, (state, action) => {
-        state.loading = "failed";
-        state.error = action.error.message;
+      .addCase(fetchCharactersByIds.pending, (state) => {
+        state.loading = false;
       });
   },
 });
@@ -100,17 +119,20 @@ export const selectMaxPage = (state) => state.maxPage;
 
 export const selectAllCharacters = (state) => state.characters.entities;
 export const selectCharactersFilters = (state) => state.characters.filters;
-export const selectFilteredCharacters = (state) => {
-  const { entities, filters } = state.characters;
-  return entities.filter(
-    (character) =>
-      (!filters.name ||
-        character.name.toLowerCase().includes(filters.name.toLowerCase())) &&
-      (!filters.species || character.species === filters.species) &&
-      (!filters.status || character.status === filters.status) &&
-      (!filters.gender || character.gender === filters.gender),
-  );
-};
+export const selectFilteredCharacters = createSelector(
+  [(state) => state.characters],
+  (characters) => {
+    const { entities, filters } = characters;
+    return entities.filter(
+      (character) =>
+        (!filters.name ||
+          character.name.toLowerCase().includes(filters.name.toLowerCase())) &&
+        (!filters.species || character.species === filters.species) &&
+        (!filters.status || character.status === filters.status) &&
+        (!filters.gender || character.gender === filters.gender),
+    );
+  },
+);
 
 export const selectCharactersByIds = createSelector(
   [selectAllCharacters, (state, characterIds) => characterIds],

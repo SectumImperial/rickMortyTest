@@ -29,3 +29,5 @@ export { AdvancedFiltersButton } from "./AdvancedFiltersButton/AdvancedFiltersBu
 export { Loading } from "./Loading/Loading";
 export { GoBackLink } from "./GoBackLink/GoBackLink";
 export { UpToButton } from "./UpToButton/UpToButton";
+
+export { ErrorPage } from "./ErrorPage/ErrorPage";

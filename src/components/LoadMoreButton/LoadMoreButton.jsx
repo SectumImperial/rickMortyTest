@@ -27,14 +27,12 @@ const LoadMoreButtonStyle = styled(Button)({
   },
 });
 
-export function LoadMoreButton() {
-  return (
-    <LoadMoreButtonStyle
-      variant="contained"
-      disableRipple
-      className={styles.button}
-    >
-      Load more
-    </LoadMoreButtonStyle>
-  );
-}
+export const LoadMoreButton = () => (
+  <LoadMoreButtonStyle
+    variant="contained"
+    disableRipple
+    className={styles.button}
+  >
+    Load more
+  </LoadMoreButtonStyle>
+);

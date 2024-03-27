@@ -22,38 +22,39 @@ export function MainEpisodes() {
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
   const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
+  const [isNeedMore, setIsNeedMore] = useState(true);
 
-  const loadMoreRef = useRef(null);
-  const heroImage = useRef(null);
-
+  const error = useSelector((state) => state.episodes.error);
   const episodes = useSelector(selectFilteredEpisodes);
   const episodeLoading = useSelector((state) => state.episodes.loading);
   const maxPage = useSelector((state) => state.episodes.maxPage);
 
-  const prevPageRef = useRef();
+  const loadMoreRef = useRef(null);
+  const heroImage = useRef(null);
+
   useEffect(() => {
-    if (prevPageRef.current !== currentPage) {
+    if (isNeedMore) {
       dispatch(fetchEpisodes({ page: currentPage }));
+      setIsNeedMore(false);
     }
-    prevPageRef.current = currentPage;
-  }, [dispatch, currentPage]);
+  }, [dispatch, currentPage, isNeedMore]);
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       setIsUpToButtonVisible(scrollTop > window.innerHeight / 2);
     };
-
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    if (episodeLoading === "succeeded") {
+    if (isLoadMoreClicked) {
       loadMoreRef.current?.scrollIntoView({ behavior: "smooth" });
+      setIsLoadMoreClicked(false);
     }
-  }, [episodes.length, episodeLoading]);
+  }, [episodes.length, episodeLoading, isLoadMoreClicked]);
 
   const handleUpButtonClick = useCallback(() => {
     heroImage.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,18 +62,24 @@ export function MainEpisodes() {
   }, []);
 
   const handleLoadMoreClick = useCallback(() => {
+    if (error) return;
     setCurrentPage((prev) => prev + 1);
     setItemsPerPage((prev) => prev + ITEMS_PER_PAGE_INITIAL);
+    setIsLoadMoreClicked(true);
+  }, [error]);
+
+  const handleFilterChange = useCallback(() => {
+    setIsNeedMore(true);
   }, []);
 
   const content = useMemo(() => {
-    return episodeLoading === "loading" ? (
-      <Loading />
-    ) : episodes.length > 0 ? (
-      <EpisodesCards episodes={episodes.slice(0, itemsPerPage)} />
-    ) : (
-      <p>Nothing found. Try other filters.</p>
-    );
+    if (episodeLoading) {
+      return <Loading />;
+    }
+    if (episodes.length > 0) {
+      return <EpisodesCards episodes={episodes.slice(0, itemsPerPage)} />;
+    }
+    return <p>Nothing found. Try other filters.</p>;
   }, [episodes, itemsPerPage, episodeLoading]);
 
   return (
@@ -80,7 +87,7 @@ export function MainEpisodes() {
       <div className={styles.hero} ref={heroImage}>
         <Hero className={styles.heroImage} type="rickAndMorty" />
       </div>
-      <ul className={styles.filterList}>
+      <ul className={styles.filterList} onChange={handleFilterChange}>
         <li className={styles.filterField}>
           <FilterInput
             filterName="name"
@@ -91,7 +98,7 @@ export function MainEpisodes() {
         </li>
       </ul>
       <section className={styles.contentCard}>{content}</section>
-      {episodeLoading === "loading" && (
+      {episodeLoading && (
         <div className={styles.loadingIndicator}>
           <Loading />
         </div>

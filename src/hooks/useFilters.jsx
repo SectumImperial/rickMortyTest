@@ -24,7 +24,7 @@ const filterActions = {
   },
 };
 
-export const useFilters = (type = "characters") => {
+export const useFilters = (type) => {
   const dispatch = useDispatch();
 
   const actions = filterActions[type];

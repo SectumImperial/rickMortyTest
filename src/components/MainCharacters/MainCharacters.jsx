@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./mainCharacters.module.scss";
-
 import { getUniqueValues } from "../../helpers/helpers";
 import { ITEMS_PER_PAGE_INITIAL } from "./constants";
 import {
@@ -24,65 +23,75 @@ import {
 
 export function MainCharacters() {
   const dispatch = useDispatch();
-  const loadMoreRef = useRef(null);
-  const heroImage = useRef(null);
-  const characters = useSelector(selectFilteredCharacters);
-  const allCharacters = useSelector(selectAllCharacters);
-  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
-  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false); 
 
   const maxPage = useSelector((state) => state.characters.maxPage);
   const characterLoading = useSelector((state) => state.characters.loading);
+  const characters = useSelector(selectFilteredCharacters);
+  const allCharacters = useSelector(selectAllCharacters);
 
-  const prevPageRef = useRef();
+  const error = useSelector((state) => state.characters.error);
+  const hasMore = useSelector((state) => state.characters.hasMore);
+
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
+  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
+  const [isNeedMore, setIsNeedMore] = useState(true);
+
+
+  const loadMoreRef = useRef(null);
+  const heroImage = useRef(null);
+
+  const statusOptions = useMemo(
+    () => getUniqueValues(allCharacters, "status"),
+    [allCharacters]
+  );
+  const speciesOptions = useMemo(
+    () => getUniqueValues(allCharacters, "species"),
+    [allCharacters]
+  );
+  const genderOptions = useMemo(
+    () => getUniqueValues(allCharacters, "gender"),
+    [allCharacters]
+  );
+
   useEffect(() => {
-
+    if (isNeedMore && !error) {
       dispatch(fetchCharacters({ page: currentPage }));
-    
-  }, [dispatch, currentPage]);
+      setIsNeedMore(false);
+    }
+  }, [dispatch, currentPage, isNeedMore, hasMore, error]);
 
   useEffect(() => {
     if (isLoadMoreClicked) {
       loadMoreRef.current?.scrollIntoView({ behavior: "smooth" });
-      setIsLoadMoreClicked(false); 
+      setIsLoadMoreClicked(false);
     }
   }, [characters.length, characterLoading, isLoadMoreClicked]);
-
-  const statusOptions = useMemo(
-    () => getUniqueValues(allCharacters, "status"),
-    [allCharacters],
-  );
-  const speciesOptions = useMemo(
-    () => getUniqueValues(allCharacters, "species"),
-    [allCharacters],
-  );
-  const genderOptions = useMemo(
-    () => getUniqueValues(allCharacters, "gender"),
-    [allCharacters],
-  );
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       setIsUpToButtonVisible(scrollTop > window.innerHeight / 2);
     };
-
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLoadMoreClick = useCallback(() => {
+    if (error) return;
     setCurrentPage((prev) => prev + 1);
     setItemsPerPage((prev) => prev + ITEMS_PER_PAGE_INITIAL);
-    setIsLoadMoreClicked(true); 
-  }, []);
+    setIsLoadMoreClicked(true);
+  }, [error]);
 
   const handleUpButtonClick = useCallback(() => {
     heroImage.current?.scrollIntoView({ behavior: "smooth" });
     setIsUpToButtonVisible(false);
+  }, []);
+
+  const handleFiltersChange = useCallback(() => {
+    setIsNeedMore(true);
   }, []);
 
   const selectFilterLabels = useMemo(
@@ -91,29 +100,28 @@ export function MainCharacters() {
       { label: "Gender", items: genderOptions, action: setCharacterFilter },
       { label: "Status", items: statusOptions, action: setCharacterFilter },
     ],
-    [statusOptions, speciesOptions, genderOptions],
+    [statusOptions, speciesOptions, genderOptions]
   );
 
   const content = useMemo(() => {
-    return characters.length > 0 ? (
-      <CharactersCards characters={characters.slice(0, itemsPerPage)} />
-    ) : characterLoading === "succeeded" ? (
-      <section className={styles.notFiltersMessage}>
-        <p>Nothing found. Try other filters.</p>
-      </section>
-    ) : (
-      <section className={styles.loading}>
-        <Loading />
-      </section>
-    );
-  }, [characters, itemsPerPage, characterLoading]);
+    if (!characters || characters.length === 0) {
+      return (
+        <section className={styles.notFiltersMessage}>
+          <p>Nothing found. Try other filters.</p>
+        </section>
+      );
+    }
+    if (characters.length < itemsPerPage && currentPage !== maxPage)
+      setIsNeedMore(true);
+    return <CharactersCards characters={characters.slice(0, itemsPerPage)} />;
+  }, [characters, itemsPerPage, currentPage, maxPage]);
 
   return (
     <main className={styles.main}>
       <div className={styles.hero} ref={heroImage}>
         <Hero className={styles.heroImage} />
       </div>
-      <ul className={styles.filterList}>
+      <ul className={styles.filterList} onChange={handleFiltersChange}>
         <li className={`${styles.filterItem} ${styles.filterField}`}>
           <FilterInput
             filterName="name"
@@ -123,13 +131,18 @@ export function MainCharacters() {
           />
         </li>
         {selectFilterLabels.map((selectItem) => (
-          <li className={styles.filterSelect}>
+          <li
+            className={styles.filterSelect}
+            key={selectItem.label}
+            onClick={handleFiltersChange}
+          >
             <SelectField
               props={{
                 label: selectItem.label,
                 items: selectItem.items,
                 filterName: selectItem.label.toLowerCase(),
                 action: selectItem.action,
+                type: "characters",
               }}
             />
           </li>
@@ -139,7 +152,7 @@ export function MainCharacters() {
         <FiltersModal modalData={selectFilterLabels} />
       </div>
       <section className={styles.contentCard}>{content}</section>
-      {characterLoading === "loading" && (
+      {characterLoading && (
         <div className={styles.loadingIndicator}>
           <Loading />
         </div>
@@ -149,7 +162,8 @@ export function MainCharacters() {
         className={styles.loadMoreButtonContainer}
         onClick={handleLoadMoreClick}
       >
-        {currentPage <= maxPage && <LoadMoreButton />}
+        {currentPage <= maxPage && hasMore && <LoadMoreButton />}
+        {(!hasMore || error) && characters.length !== 0 && <p>No more characters</p>} 
       </div>
       {currentPage > 2 && isUpToButtonVisible && (
         <div className={styles.upToButton} onClick={handleUpButtonClick}>

@@ -8,7 +8,7 @@
 }
 
 .top {
-  display: flex;
+  @include mixins.top;
 }
 
 .name {
@@ -21,6 +21,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.episodeInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .dl {
@@ -36,10 +41,25 @@
 }
 .dd {
   margin: 0;
+  color: rgba(110, 121, 140, 1);
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .sectionTitle {
   @include mixins.fontMain500;
   font-size: 20px;
   color: #8e8e93;
+}
+
+.castCards {
+  @include mixins.mainCardsStyle;
+  padding-bottom: 30px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }

@@ -17,6 +17,7 @@ import {
   MainCharacterDetail,
   MainLocationDetail,
   MainEpisodeDetail,
+  ErrorPage,
 } from "./components";
 
 const App = () => (
@@ -34,19 +35,41 @@ const App = () => (
       >
         <Header />
         <Routes>
-          <Route path="/characters" element={<MainCharacters />} />
-          <Route path="/locations" element={<MainLocations />} />
-          <Route path="/episodes" element={<MainEpisodes />} />
+          <Route
+            path="/characters"
+            element={<MainCharacters />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/locations"
+            element={<MainLocations />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/episodes"
+            element={<MainEpisodes />}
+            errorElement={<ErrorPage />}
+          />
           <Route
             path="/characters/:characterId"
             element={<MainCharacterDetail />}
+            errorElement={<ErrorPage />}
           />
           <Route
             path="/locations/:locationId"
             element={<MainLocationDetail />}
+            errorElement={<ErrorPage />}
           />
-          <Route path="/episodes/:episodeId" element={<MainEpisodeDetail />} />
-          <Route path="/" element={<Navigate to="/characters" replace />} />
+          <Route
+            path="/episodes/:episodeId"
+            element={<MainEpisodeDetail />}
+            errorElement={<ErrorPage />}
+          />
+          <Route
+            path="/"
+            element={<Navigate to="/characters" replace />}
+            errorElement={<ErrorPage />}
+          />
         </Routes>
         <Footer />
       </Container>

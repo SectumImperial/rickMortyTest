@@ -21,32 +21,23 @@ export const fetchEpisodes = createAsyncThunk(
 );
 
 export const fetchEpisodesByIds = createAsyncThunk(
-  "episodes/fetchByIds",
+  "episodes/fetchEpisodesByIds",
   async (episodeIds) => {
-    const requests = episodeIds.map((id) =>
-      axios.get(`https://rickandmortyapi.com/api/episode/${id}`),
+    const ids = Array.isArray(episodeIds)
+      ? episodeIds.map((url) => url.split("/").pop())
+      : episodeIds;
+    const response = await axios.get(
+      `https://rickandmortyapi.com/api/episode/${ids}`,
     );
-    const responses = await Promise.all(requests);
-    return responses.map((response) => response.data);
-  },
-);
-
-export const fetchCharactersByEpisodeId = createAsyncThunk(
-  "episodes/fetchCharactersByEpisodeId",
-  async (episodeIds) => {
-    const requests = episodeIds.map((id) =>
-      axios.get(`https://rickandmortyapi.com/api/character/${id}`),
-    );
-    const responses = await Promise.all(requests);
-    return responses.map((response) => response.data);
+    return response.data;
   },
 );
 
 const initialState = {
   maxPage: 1,
   entities: [],
-  loading: "idle",
-  currentEpisode: null,
+  loading: null,
+  episodesByIds: [],
   characters: [],
   error: null,
   filters: JSON.parse(localStorage.getItem("episodeFilters")) || {
@@ -71,36 +62,46 @@ const episodesSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchEpisodes.pending, (state) => {
-        state.loading = "loading";
+        state.loading = true;
       })
       .addCase(fetchEpisodes.fulfilled, (state, action) => {
-        state.loading = "succeeded";
-  const newEpisodes = new Map(state.entities.map(episode => [episode.id, episode]));
+        state.loading = false;
+        const newEpisodes = new Map(
+          state.entities.map((episode) => [episode.id, episode]),
+        );
+        action.payload.results.forEach((episode) => {
+          newEpisodes.set(episode.id, episode);
+        });
 
-  action.payload.results.forEach(episode => {
-    newEpisodes.set(episode.id, episode);
-  });
-
-  state.entities = Array.from(newEpisodes.values());
-  state.maxPage = action.payload.info.pages;
+        state.entities = Array.from(newEpisodes.values());
+        state.maxPage = action.payload.info.pages;
       })
       .addCase(fetchEpisodes.rejected, (state, action) => {
-        state.loading = "failed";
+        state.loading = false;
         state.error = action.error.message;
       })
       .addCase(fetchEpisodesByIds.pending, (state) => {
-        state.loading = "loading";
+        state.loading = true;
       })
       .addCase(fetchEpisodesByIds.fulfilled, (state, action) => {
-        state.currentEpisode = action.payload;
-        state.loading = "succeeded";
+        const episodesData = Array.isArray(action.payload)
+          ? action.payload
+          : [action.payload];
+        const newEpisodes = new Map(
+          state.episodesByIds.map((episode) => [episode.id, episode]),
+        );
+
+        episodesData.forEach((episode) => {
+          newEpisodes.set(episode.id, episode);
+        });
+
+        state.episodesByIds = Array.from(newEpisodes.values());
+        state.loading = false;
+        state.error = null;
       })
       .addCase(fetchEpisodesByIds.rejected, (state, action) => {
-        state.loading = "failed";
+        state.loading = false;
         state.error = action.error.message;
-      })
-      .addCase(fetchCharactersByEpisodeId.fulfilled, (state, action) => {
-        state.characters = action.payload;
       });
   },
 });
