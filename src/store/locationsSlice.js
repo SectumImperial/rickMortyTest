@@ -43,7 +43,7 @@ const initialState = {
   loadingById: true,
   loading: true,
   error: null,
-  errorStatus: null,
+  hasMore: true,
   filters: JSON.parse(localStorage.getItem("locationsFilters")) || {
     name: "",
     type: "",
@@ -59,6 +59,7 @@ const locationsSlice = createSlice({
       const { filterName, value } = action.payload;
       state.filters[filterName] = value;
       localStorage.setItem("locationsFilters", JSON.stringify(state.filters));
+      state.hasMore = true;
     },
     resetLocationsFilters(state) {
       state.filters = {};
@@ -72,8 +73,20 @@ const locationsSlice = createSlice({
       })
       .addCase(fetchLocations.fulfilled, (state, action) => {
         state.loading = false;
+        const newLocations = new Map(state.entities.map((loc) => [loc.id, loc]));
+      
+        action.payload.results.forEach((loc) => {
+          newLocations.set(loc.id, loc);
+        });
+      
+        state.entities = Array.from(newLocations.values());
+        state.maxPage = action.payload.info.pages;
+        state.error = null;
+
+        state.loading = false;
         state.entities = [...state.entities, ...action.payload.results];
         state.maxPage = action.payload.info.pages;
+        state.hasMore = !!action.payload.info.next;
       })
       .addCase(fetchLocations.rejected, (state, action) => {
         state.loading = false;

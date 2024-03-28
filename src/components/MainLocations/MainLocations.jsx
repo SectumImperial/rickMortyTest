@@ -29,6 +29,7 @@ export function MainLocations() {
   const locationLoading = useSelector((state) => state.locations.loading);
   const maxPage = useSelector((state) => state.locations.maxPage);
   const error = useSelector((state) => state.locations.error);
+  const hasMore = useSelector((state) => state.locations.hasMore);
 
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,11 +41,11 @@ export function MainLocations() {
   const heroImage = useRef(null);
 
   useEffect(() => {
-    if (isNeedMore) {
+    if (isNeedMore && !error) {
       dispatch(fetchLocations({ page: currentPage }));
       setIsNeedMore(false);
     }
-  }, [dispatch, currentPage, isNeedMore]);
+  }, [dispatch, currentPage, isNeedMore, hasMore, error]);
 
   useEffect(() => {
     if (isLoadMoreClicked) {
