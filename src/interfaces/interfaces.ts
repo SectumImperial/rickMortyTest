@@ -70,9 +70,29 @@ export const fetchCharacters = createAsyncThunk<FetchCharactersPayload, { page: 
   async (args, { getState }) => {
     const state = getState();
     const { filters } = state;
-    // Параметры запроса на основе filters...
+
     const response = await fetch(`https://rickandmortyapi.com/api/character/?page=${args.page}`);
     const data: FetchCharactersPayload = await response.json();
     return data;
   }
 );
+
+const charactersSlice = createSlice({
+  name: 'characters',
+  initialState,
+  reducers: {
+    setCharacterFilter: (state, action: PayloadAction<FilterPayload>) => {
+      const { filterName, value } = action.payload;
+      state.filters[filterName] = value;
+
+    },
+    resetCharacterFilters: (state) => {
+      state.filters = initialState.filters;
+
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+
+  },
+});
