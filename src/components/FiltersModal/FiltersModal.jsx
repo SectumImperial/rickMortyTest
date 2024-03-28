@@ -73,7 +73,6 @@ export function FiltersModal({ modalData }) {
                     props={{
                       label: item.label,
                       items: item.items,
-                      action: item.action,
                       filterName: item.label.toLowerCase(),
                     }}
                   />

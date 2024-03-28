@@ -17,18 +17,14 @@ export function MainLocationDetail() {
       (location) => location.id.toString() === locationId,
     ),
   );
-
   const residents = useSelector((state) => state.characters.charactersByIds);
 
   useEffect(() => {
-    if (locationLoading) {
       dispatch(fetchLocationsByIds(locationId));
-    }
-  }, [locationLoading, dispatch, locationId]);
+  }, [dispatch, locationId]);
 
   useEffect(() => {
     if (
-      !locationLoading &&
       location &&
       location.residents &&
       location.residents.length > 0

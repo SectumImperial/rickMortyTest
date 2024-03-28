@@ -73,12 +73,14 @@ const locationsSlice = createSlice({
       })
       .addCase(fetchLocations.fulfilled, (state, action) => {
         state.loading = false;
-        const newLocations = new Map(state.entities.map((loc) => [loc.id, loc]));
-      
+        const newLocations = new Map(
+          state.entities.map((loc) => [loc.id, loc]),
+        );
+
         action.payload.results.forEach((loc) => {
           newLocations.set(loc.id, loc);
         });
-      
+
         state.entities = Array.from(newLocations.values());
         state.maxPage = action.payload.info.pages;
         state.error = null;
@@ -98,15 +100,8 @@ const locationsSlice = createSlice({
         const locationsData = Array.isArray(action.payload)
           ? action.payload
           : [action.payload];
-        const newLocations = new Map(
-          state.locationsByIds.map((location) => [location.id, location]),
-        );
-
-        locationsData.forEach((location) => {
-          newLocations.set(location.id, location);
-        });
-
-        state.locationsByIds = Array.from(newLocations.values());
+  
+        state.locationsByIds = locationsData;
         state.loadingById = false;
         state.error = null;
         state.errorStatus = null;

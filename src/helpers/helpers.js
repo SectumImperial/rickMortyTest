@@ -6,3 +6,7 @@ export const getUniqueValues = (data, key) => {
 
   return [...uniqueValues];
 };
+
+export function sortByIdAsc(array) {
+  return array.sort((a, b) => Number(a.id) - Number(b.id));
+}

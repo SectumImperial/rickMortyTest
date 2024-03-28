@@ -1,29 +1,20 @@
-import { useId, useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useId } from "react";
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import styles from "./selectField.module.scss";
-import { useFilters } from '../../hooks/useFilters'; 
+import { useFilters } from "../../hooks/useFilters";
 
-export function SelectField({ label, items = [], filterName, type }) {
-  const { updateFilter } = useFilters(type); 
-  const [selectedItem, setSelectedItem] = useState('');
+export function SelectField({ props }) {
+  const { label, items, filterName, type } = props;
 
   const idSelect = useId();
   const idLabel = useId();
 
-  const filters = JSON.parse(localStorage.getItem("characterFilters")) || {};
-  const [item, setItem] = useState(filters[filterName] || "");
+  const { updateFilter, getCurrentFilters } = useFilters(type);
 
-  useEffect(() => {
-    const savedFilters = JSON.parse(localStorage.getItem(`${type}Filters`)) || {};
-    if(savedFilters[filterName]) {
-      setSelectedItem(savedFilters[filterName]);
-    }
-  }, [filterName, type]);
+  const currentValue = getCurrentFilters(type)[filterName] || "";
 
-  const handleChange = (event) => {
-    const value = event.target.value;
-    setSelectedItem(value);
+  const handleChange = ({ target }) => {
+    const { value } = target;
     updateFilter(filterName, value);
   };
 
@@ -53,15 +44,19 @@ export function SelectField({ label, items = [], filterName, type }) {
         {label}
       </InputLabel>
       <Select
-        value={selectedItem}
+        labelId={idLabel}
+        id={idSelect}
+        value={currentValue}
         onChange={handleChange}
         label={label}
       >
         <MenuItem value="">
           <em>None</em>
         </MenuItem>
-        {items.map((item) => (
-          <MenuItem key={item} value={item}>{item}</MenuItem>
+        {items.map((menuItem) => (
+          <MenuItem value={menuItem} key={menuItem}>
+            {menuItem}
+          </MenuItem>
         ))}
       </Select>
     </FormControl>

@@ -25,20 +25,21 @@ export function MainEpisodes() {
   const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
   const [isNeedMore, setIsNeedMore] = useState(true);
 
-  const error = useSelector((state) => state.episodes.error);
   const episodes = useSelector(selectFilteredEpisodes);
   const episodeLoading = useSelector((state) => state.episodes.loading);
   const maxPage = useSelector((state) => state.episodes.maxPage);
+  const error = useSelector((state) => state.locations.error);
+  const hasMore = useSelector((state) => state.locations.hasMore);
 
   const loadMoreRef = useRef(null);
   const heroImage = useRef(null);
 
   useEffect(() => {
-    if (isNeedMore) {
+    if (isNeedMore && !error) {
       dispatch(fetchEpisodes({ page: currentPage }));
       setIsNeedMore(false);
     }
-  }, [dispatch, currentPage, isNeedMore]);
+  }, [dispatch, currentPage, isNeedMore, hasMore, error]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,6 +57,7 @@ export function MainEpisodes() {
     }
   }, [episodes.length, episodeLoading, isLoadMoreClicked]);
 
+  // Handlers
   const handleUpButtonClick = useCallback(() => {
     heroImage.current?.scrollIntoView({ behavior: "smooth" });
     setIsUpToButtonVisible(false);
@@ -72,15 +74,20 @@ export function MainEpisodes() {
     setIsNeedMore(true);
   }, []);
 
+  // Content
   const content = useMemo(() => {
-    if (episodeLoading) {
-      return <Loading />;
+    if (!episodes || episodes.length === 0) {
+      return (
+        <section className={styles.notFiltersMessage}>
+          <p>Nothing found. Try other filters.</p>
+        </section>
+      );
     }
-    if (episodes.length > 0) {
-      return <EpisodesCards episodes={episodes.slice(0, itemsPerPage)} />;
-    }
-    return <p>Nothing found. Try other filters.</p>;
-  }, [episodes, itemsPerPage, episodeLoading]);
+    if (episodes.length < itemsPerPage && currentPage !== maxPage)
+      setIsNeedMore(true);
+
+    return <EpisodesCards episodes={episodes.slice(0, itemsPerPage)} />;
+  }, [episodes, itemsPerPage, maxPage, currentPage]);
 
   return (
     <main className={styles.main}>
@@ -108,7 +115,10 @@ export function MainEpisodes() {
         className={styles.loadMoreButtonContainer}
         onClick={handleLoadMoreClick}
       >
-        {currentPage <= maxPage && <LoadMoreButton />}
+        {currentPage <= maxPage && hasMore && <LoadMoreButton />}
+        {(!hasMore || error) && episodes.length !== 0 && (
+          <p>No more episodes</p>
+        )}
       </div>
       {currentPage > 2 && isUpToButtonVisible && (
         <div className={styles.upToButton} onClick={handleUpButtonClick}>

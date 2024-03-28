@@ -1,8 +1,11 @@
 import { Card, CardMedia, CardContent, Typography } from "@mui/material";
 import styles from "./characterCard.module.scss";
 import { Link } from "react-router-dom";
+import { CharacterCardProps } from "../../interfaces/interfaces"
 
-export function CharacterCard({ character }) {
+
+export function CharacterCard({ character }: CharacterCardProps) {
+  if (Array.isArray(character)) return;
   const { id, image, name, species } = character;
   const characterLink = `/characters/${id}`;
 

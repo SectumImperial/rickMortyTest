@@ -38,9 +38,9 @@ const initialState = {
   entities: [],
   loading: null,
   episodesByIds: [],
-  characters: [],
   error: null,
-  filters: JSON.parse(localStorage.getItem("episodeFilters")) || {
+  hasMore: true,
+  filters: JSON.parse(localStorage.getItem("episodesFilters")) || {
     name: "",
   },
 };
@@ -52,11 +52,11 @@ const episodesSlice = createSlice({
     setEpisodeFilter(state, action) {
       const { filterName, value } = action.payload;
       state.filters[filterName] = value;
-      localStorage.setItem("episodeFilters", JSON.stringify(state.filters));
+      localStorage.setItem("episodesFilters", JSON.stringify(state.filters));
     },
     resetEpisodeFilters(state) {
       state.filters = {};
-      localStorage.removeItem("episodeFilters");
+      localStorage.removeItem("episodesFilters");
     },
   },
   extraReducers: (builder) => {
@@ -75,6 +75,8 @@ const episodesSlice = createSlice({
 
         state.entities = Array.from(newEpisodes.values());
         state.maxPage = action.payload.info.pages;
+        state.error = null;
+        state.hasMore = !!action.payload.info.next;
       })
       .addCase(fetchEpisodes.rejected, (state, action) => {
         state.loading = false;
@@ -87,15 +89,8 @@ const episodesSlice = createSlice({
         const episodesData = Array.isArray(action.payload)
           ? action.payload
           : [action.payload];
-        const newEpisodes = new Map(
-          state.episodesByIds.map((episode) => [episode.id, episode]),
-        );
 
-        episodesData.forEach((episode) => {
-          newEpisodes.set(episode.id, episode);
-        });
-
-        state.episodesByIds = Array.from(newEpisodes.values());
+        state.episodesByIds = episodesData;
         state.loading = false;
         state.error = null;
       })

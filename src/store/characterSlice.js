@@ -43,7 +43,7 @@ const initialState = {
   loading: null,
   error: null,
   hasMore: true,
-  filters: JSON.parse(localStorage.getItem("characterFilters")) || {
+  filters: JSON.parse(localStorage.getItem("charactersFilters")) || {
     name: "",
     species: "",
     status: "",
@@ -57,12 +57,12 @@ const charactersSlice = createSlice({
     setCharacterFilter(state, action) {
       const { filterName, value } = action.payload;
       state.filters[filterName] = value;
-      localStorage.setItem("characterFilters", JSON.stringify(state.filters));
+      localStorage.setItem("charactersFilters", JSON.stringify(state.filters));
       state.hasMore = true;
     },
     resetCharacterFilters(state) {
       state.filters = {};
-      localStorage.removeItem("characterFilters");
+      localStorage.removeItem("charactersFilters");
     },
   },
   extraReducers: (builder) => {
@@ -72,12 +72,14 @@ const charactersSlice = createSlice({
       })
       .addCase(fetchCharacters.fulfilled, (state, action) => {
         state.loading = false;
-        const newCharacters = new Map(state.entities.map((char) => [char.id, char]));
-      
+        const newCharacters = new Map(
+          state.entities.map((char) => [char.id, char]),
+        );
+
         action.payload.results.forEach((char) => {
           newCharacters.set(char.id, char);
         });
-      
+
         state.entities = Array.from(newCharacters.values());
         state.maxPage = action.payload.info.pages;
         state.error = null;
@@ -91,15 +93,8 @@ const charactersSlice = createSlice({
         const charactersData = Array.isArray(action.payload)
           ? action.payload
           : [action.payload];
-        const newCharacters = new Map(
-          state.charactersByIds.map((character) => [character.id, character]),
-        );
 
-        charactersData.forEach((character) => {
-          newCharacters.set(character.id, character);
-        });
-
-        state.charactersByIds = Array.from(newCharacters.values());
+        state.charactersByIds = charactersData;
         state.loading = false;
       })
       .addCase(fetchCharactersByIds.rejected, (state, action) => {

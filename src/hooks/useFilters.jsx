@@ -30,8 +30,7 @@ export const useFilters = (type) => {
   const actions = filterActions[type];
   const updateFilter = (filterName, value) => {
     dispatch(actions.setFilter({ filterName, value }));
-    const currentFilters =
-      JSON.parse(localStorage.getItem(`${type}Filters`)) || {};
+    const currentFilters = getCurrentFilters(type);
     currentFilters[filterName] = value;
     localStorage.setItem(`${type}Filters`, JSON.stringify(currentFilters));
   };
@@ -41,5 +40,9 @@ export const useFilters = (type) => {
     localStorage.removeItem(`${type}Filters`);
   };
 
-  return { updateFilter, resetAllFilters };
+  const getCurrentFilters = (type) => {
+    return JSON.parse(localStorage.getItem(`${type}Filters`)) || {};
+  }
+
+  return { updateFilter, resetAllFilters, getCurrentFilters };
 };
