@@ -25,7 +25,7 @@ const App = () => (
     <Router>
       <Container
         className="container"
-        maxWidth="false"
+        maxWidth={false}
         disableGutters
         sx={{
           display: "flex",

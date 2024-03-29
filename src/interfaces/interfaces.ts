@@ -1,3 +1,4 @@
+// Characters
 export interface Character {
   id: number;
   name: string;
@@ -27,12 +28,12 @@ export interface CharactersCardProps {
   characters: Character[];
 }
 
-interface CharacterState {
+export interface CharacterState {
   maxPage: number;
   entities: Character[]; 
   charactersByIds: Character[];
   loading: boolean | null;
-  error: string | null;
+  error: string | null | undefined;
   hasMore: boolean;
   filters: {
     name: string;
@@ -42,14 +43,11 @@ interface CharacterState {
   };
 }
 
-interface AppState {
+export interface CharacterRootState {
   characters: CharacterState;
-  locations: LocationState;
-  episodes: EpisodeState;
 }
 
-
-interface FetchCharactersPayload {
+export interface FetchCharactersPayload {
   results: Character[];
   info: {
     pages: number;
@@ -57,42 +55,102 @@ interface FetchCharactersPayload {
   };
 }
 
-interface FilterPayload {
-  filterName: keyof CharactersState['filters'];
-  value: string;
+// Locations
+export interface Location {
+  id: number;
+  name: string;
+  status: string;
+  type: string;
+  dimension: string;
+  residents: [];
+  episode: string[];
+  url: string;
+  created: string;
 }
 
+export interface LocationState {
+  maxPage: number;
+  entities: Location[]; 
+  locationsByIds: Location[];
+  loading: boolean | null;
+  error: string | null | undefined;
+  hasMore: boolean;
+  filters: {
+    name: string;
+    type: string;
+    dimension: string;
+  };
+}
 
-import { createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+export interface LocationRootState {
+  locations: LocationState;
+}
 
-export const fetchCharacters = createAsyncThunk<FetchCharactersPayload, { page: number }, { state: CharactersState }>(
-  'characters/fetchCharacters',
-  async (args, { getState }) => {
-    const state = getState();
-    const { filters } = state;
+export interface FetchLocationPayload {
+  results: Location[];
+  info: {
+    pages: number;
+    next: string | null;
+  };
+}
 
-    const response = await fetch(`https://rickandmortyapi.com/api/character/?page=${args.page}`);
-    const data: FetchCharactersPayload = await response.json();
-    return data;
-  }
-);
+// Episodes
+export interface Episode {
+  id: number;
+  name: string;
+  air_date: string;
+  episode: string;
+  characters: string[];
+  url: string;
+  created: string;
+}
 
-const charactersSlice = createSlice({
-  name: 'characters',
-  initialState,
-  reducers: {
-    setCharacterFilter: (state, action: PayloadAction<FilterPayload>) => {
-      const { filterName, value } = action.payload;
-      state.filters[filterName] = value;
+export interface EpisodeState {
+  episodesByIds: any;
+  maxPage: number;
+  entities: Episode[];
+  loading: boolean | null;
+  error: string | null | undefined;
+  hasMore: boolean;
+  filters: {
+    name: string;
+  };
+}
 
-    },
-    resetCharacterFilters: (state) => {
-      state.filters = initialState.filters;
+export interface EpisodeRootState {
+  episodes: EpisodeState;
+}
 
-    },
-  },
-  extraReducers: (builder) => {
-    builder
+export interface FetchEpisodePayload {
+  results: Episode[];
+  info: {
+    pages: number;
+    next: string | null;
+  };
+}
 
-  },
-});
+export interface EpisodesCardProps {
+  episodes: Episode[];
+}
+
+export interface EpisodeCardProps {
+  episodeData: Episode;
+}
+
+// Rest
+export interface AppState {
+  characters: CharacterState;
+  locations: LocationState;
+  episodes: EpisodeState;
+}
+
+export interface SelectFilterLabel {
+  label: string;
+  items: string[];
+}
+
+export interface FetchArgs {
+  page?: number;
+}
+
+export type FilterValue = string;

@@ -1,8 +1,9 @@
+import { FC } from "react";
 import styles from "./charactersCards.module.scss";
 import { CharacterCard } from "..";
 import { CharactersCardProps } from "../../interfaces/interfaces"
 
-export const CharactersCards = ({ characters }: CharactersCardProps) => {
+export const CharactersCards: FC<CharactersCardProps> = ({ characters }: CharactersCardProps) => {
   if (!Array.isArray(characters)) return;
   return (
     <section className={styles.cards}>

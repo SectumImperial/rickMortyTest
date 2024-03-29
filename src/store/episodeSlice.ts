@@ -1,24 +1,42 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { createSelector } from "@reduxjs/toolkit";
 import axios from "axios";
 
-export const fetchEpisodes = createAsyncThunk(
-  "episodes/fetchEpisodes",
-  async (filters, { getState }) => {
-    const {
-      episodes: { filters: currentFilters },
-    } = getState();
-    const queryParams = new URLSearchParams({
-      ...currentFilters,
-      ...filters,
-    }).toString();
+import {
+  AppState,
+  FetchArgs,
+  FetchEpisodePayload,
+  EpisodeRootState,
+  EpisodeState,
+  FilterValue
+} from "../interfaces/interfaces";
 
-    const response = await axios.get(
-      `https://rickandmortyapi.com/api/episode/?${queryParams}`,
-    );
-    return response.data;
-  },
-);
+export const fetchEpisodes = createAsyncThunk<
+  FetchEpisodePayload,
+  FetchArgs,
+  { state: EpisodeRootState }
+>("episodes/fetchEpisodes", async (args, { getState }) => {
+  const {
+    episodes: { filters },
+  } = getState();
+
+  const queryParams = new URLSearchParams();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) {
+      queryParams.set(key, value);
+    }
+  });
+
+  if (args.page !== undefined) {
+    queryParams.set("page", args.page.toString());
+  }
+
+  const response = await axios.get(
+    `https://rickandmortyapi.com/api/episode/?${queryParams}`
+  );
+  return response.data as FetchEpisodePayload;
+});
 
 export const fetchEpisodesByIds = createAsyncThunk(
   "episodes/fetchEpisodesByIds",
@@ -33,29 +51,38 @@ export const fetchEpisodesByIds = createAsyncThunk(
   },
 );
 
-const initialState = {
+const initialState: EpisodeState = {
   maxPage: 1,
   entities: [],
   loading: null,
   episodesByIds: [],
   error: null,
   hasMore: true,
-  filters: JSON.parse(localStorage.getItem("episodesFilters")) || {
+  filters: JSON.parse(localStorage.getItem("episodesFilters") || "") || {
     name: "",
   },
 };
+
+type FilterName = "name";
+
+interface FilterAction {
+  filterName: FilterName;
+  value: FilterValue;
+}
 
 const episodesSlice = createSlice({
   name: "episodes",
   initialState,
   reducers: {
-    setEpisodeFilter(state, action) {
+    setEpisodeFilter(state, action: PayloadAction<FilterAction>) {
       const { filterName, value } = action.payload;
-      state.filters[filterName] = value;
+      if (typeof filterName === "string")  state.filters[filterName] = value;
       localStorage.setItem("episodesFilters", JSON.stringify(state.filters));
     },
     resetEpisodeFilters(state) {
-      state.filters = {};
+      state.filters = {
+        name: "",
+      };
       localStorage.removeItem("episodesFilters");
     },
   },
@@ -103,8 +130,8 @@ const episodesSlice = createSlice({
 
 export const { setEpisodeFilter, resetEpisodeFilters } = episodesSlice.actions;
 
-export const selectAllEpisodes = (state) => state.episodes.entities;
-export const selectEpisodeFilters = (state) => state.episodes.filters;
+export const selectAllEpisodes = (state: AppState) => state.episodes.entities;
+export const selectEpisodeFilters = (state: AppState) => state.episodes.filters;
 export const selectFilteredEpisodes = createSelector(
   [selectAllEpisodes, selectEpisodeFilters],
   (entities, filters) => {

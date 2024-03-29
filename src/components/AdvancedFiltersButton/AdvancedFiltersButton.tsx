@@ -1,8 +1,8 @@
 import Button from "@mui/material/Button";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import React from "react";
+import { FC } from "react";
 
-export const AdvancedFiltersButton = () => {
+export const AdvancedFiltersButton: FC = () => {
   return (
     <Button
       variant="contained"

@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef, FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./mainCharacters.module.scss";
+import { AppState, SelectFilterLabel, FetchCharactersPayload } from "../../interfaces/interfaces";
 import { getUniqueValues, sortByIdAsc } from "../../helpers/helpers";
 import { ITEMS_PER_PAGE_INITIAL, TYPE } from "./constants";
 import {
@@ -19,9 +20,10 @@ import {
   Loading,
   UpToButton,
 } from "..";
+import { useAppDispatch } from "../../store/hooks";
 
-const MainCharacters: FC = () => {
-  const dispatch = useDispatch();
+export function MainCharacters() {
+  const dispatch = useAppDispatch();
 
   const maxPage = useSelector((state: AppState) => state.characters.maxPage);
   const characterLoading = useSelector((state: AppState) => state.characters.loading);
@@ -45,7 +47,9 @@ const MainCharacters: FC = () => {
 
   useEffect(() => {
     if (isNeedMore && !error) {
-      dispatch(fetchCharacters({ page: currentPage }));
+      dispatch(fetchCharacters({
+        page: currentPage,
+      }));
       setIsNeedMore(false);
     }
   }, [dispatch, currentPage, isNeedMore, hasMore, error]);
@@ -100,16 +104,21 @@ const MainCharacters: FC = () => {
   // Content variables
   const content = useMemo(() => {
     if (!orderedCharacters || orderedCharacters.length === 0) {
-      return <section className={styles.notFiltersMessage}><p>Nothing found. Try other filters.</p></section>;
+      return (
+        <section className={styles.notFiltersMessage}>
+          <p>Nothing found. Try other filters.</p>
+        </section>
+      );
     }
-    if (orderedCharacters.length < itemsPerPage && currentPage !== maxPage) setIsNeedMore(true);
+    if (orderedCharacters.length < itemsPerPage && currentPage !== maxPage)
+      setIsNeedMore(true);
     return <CharactersCards characters={orderedCharacters.slice(0, itemsPerPage)} />;
-  }, [orderedCharacters, itemsPer
+  }, [orderedCharacters, itemsPerPage, currentPage, maxPage]);
 
   return (
     <main className={styles.main}>
       <div className={styles.hero} ref={heroImage}>
-        <Hero className={styles.heroImage} />
+        <Hero />
       </div>
       <ul
         className={styles.filterList}

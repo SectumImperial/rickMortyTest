@@ -4,44 +4,45 @@ import { useParams, Link } from "react-router-dom";
 import styles from "./mainCharacterDetail.module.scss";
 import { fetchCharactersByIds } from "../../store/characterSlice";
 import { fetchEpisodesByIds } from "../../store/episodeSlice";
-import { GoBackLink, Loading } from "../";
+import { GoBackLink, Loading } from "..";
 import { INFORMATION_FIELDS } from "./constants";
 import { extractNumbersFromEnd } from "./helpers";
+import { Character, Episode, AppState } from "../../interfaces/interfaces"; 
+import { useAppSelector, useAppDispatch } from "../../store/hooks";
+
 
 export const MainCharacterDetail = () => {
-  const dispatch = useDispatch();
-  const { characterId } = useParams();
-  const top = useRef(null);
+  const dispatch = useAppDispatch();
+  const { characterId } = useParams<{ characterId: string }>();
+  const top = useRef<HTMLDivElement>(null);
 
-  const characterLoading = useSelector((state) => state.characters.loading);
-  const episodeLoading = useSelector((state) => state.episodes.loading);
-  const character = useSelector((state) =>
-    state.characters.charactersByIds.find(
-      (char) => char.id.toString() === characterId,
-    ),
+
+  const characterLoading = useAppSelector((state) => state.characters.loading);
+  const episodeLoading = useAppSelector((state) => state.episodes.loading);
+  const character = useAppSelector((state) =>
+    state.characters.charactersByIds.find((char) => char.id.toString() === characterId),
   );
-  const episodes = useSelector((state) => state.episodes.episodesByIds);
+  const episodes: Episode[] = useAppSelector((state) => state.episodes.episodesByIds);
+
 
   useEffect(() => {
     if (character) {
-      dispatch(fetchEpisodesByIds(character.episode));
+      void dispatch(fetchEpisodesByIds(character.episode));
     }
   }, [dispatch, character]);
 
   useEffect(() => {
-    dispatch(fetchCharactersByIds(characterId));
+    if (characterId) {
+      void  dispatch(fetchCharactersByIds([characterId]));
+    }
   }, [dispatch, characterId]);
 
   useEffect(() => {
     top.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  const imageSrc = useMemo(() => {
-    if (!characterLoading && character) return character.image;
-  }, [characterLoading, character]);
-  const nameCharacter = useMemo(() => {
-    if (!characterLoading && character) return character.name;
-  }, [characterLoading, character]);
+  const imageSrc = useMemo(() => character?.image, [character]);
+  const nameCharacter = useMemo(() => character?.name, [character]);
 
   const informationContent = useMemo(() => {
     if (!characterLoading && character) {
