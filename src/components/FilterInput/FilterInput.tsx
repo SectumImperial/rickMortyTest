@@ -5,8 +5,8 @@ import { useFilters } from "../../hooks/useFilters";
 
 interface FilterInputProps {
   text?: string;
-  filterName: string; 
-  type: 'characters' | 'locations' | 'episodes';
+  filterName: string;
+  type: "characters" | "locations" | "episodes";
 }
 
 export function FilterInput({
@@ -27,7 +27,7 @@ export function FilterInput({
         className={styles.textField}
         placeholder={text}
         variant="outlined"
-        value={filters[filterName] || ''} 
+        value={filters[filterName] || ""}
         onChange={handleFilterChange}
         InputProps={{
           startAdornment: (

@@ -36,3 +36,9 @@
 .upToButton {
   @include mixins.upToButton;
 }
+
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

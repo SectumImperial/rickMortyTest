@@ -8,8 +8,11 @@ import {
   FetchEpisodePayload,
   EpisodeRootState,
   EpisodeState,
-  FilterValue
+  FilterValue,
+  Episode,
 } from "../interfaces/interfaces";
+
+import { parseJSON } from "./helpers";
 
 export const fetchEpisodes = createAsyncThunk<
   FetchEpisodePayload,
@@ -31,36 +34,41 @@ export const fetchEpisodes = createAsyncThunk<
   if (args.page !== undefined) {
     queryParams.set("page", args.page.toString());
   }
+  const response = await axios.get(`https://rickandmortyapi.com/api/episode/`, {
+    params: Object.fromEntries(queryParams),
+  });
+  return response.data as FetchEpisodePayload;
+});
 
+type EpisodeUrls = string | string[];
+
+export const fetchEpisodesByIds = createAsyncThunk<
+  FetchEpisodePayload,
+  EpisodeUrls
+>("episodes/fetchEpisodesByIds", async (residentUrls) => {
+  let ids: string;
+
+  if (Array.isArray(residentUrls)) {
+    ids = residentUrls.map((url) => url.split("/").pop() ?? "").join(",");
+  } else {
+    ids = residentUrls;
+  }
   const response = await axios.get(
-    `https://rickandmortyapi.com/api/episode/?${queryParams}`
+    `https://rickandmortyapi.com/api/episode/${ids}`,
   );
   return response.data as FetchEpisodePayload;
 });
 
-export const fetchEpisodesByIds = createAsyncThunk(
-  "episodes/fetchEpisodesByIds",
-  async (episodeIds) => {
-    const ids = Array.isArray(episodeIds)
-      ? episodeIds.map((url) => url.split("/").pop())
-      : episodeIds;
-    const response = await axios.get(
-      `https://rickandmortyapi.com/api/episode/${ids}`,
-    );
-    return response.data;
-  },
-);
-
 const initialState: EpisodeState = {
   maxPage: 1,
   entities: [],
-  loading: null,
   episodesByIds: [],
+  loading: null,
   error: null,
   hasMore: true,
-  filters: JSON.parse(localStorage.getItem("episodesFilters") || "") || {
+  filters: parseJSON(localStorage.getItem("episodesFilters"), {
     name: "",
-  },
+  }),
 };
 
 type FilterName = "name";
@@ -70,13 +78,17 @@ interface FilterAction {
   value: FilterValue;
 }
 
+function isEpisode(payload: FetchEpisodePayload | Episode): payload is Episode {
+  return "id" in payload && "name" in payload;
+}
+
 const episodesSlice = createSlice({
   name: "episodes",
   initialState,
   reducers: {
     setEpisodeFilter(state, action: PayloadAction<FilterAction>) {
       const { filterName, value } = action.payload;
-      if (typeof filterName === "string")  state.filters[filterName] = value;
+      if (typeof filterName === "string") state.filters[filterName] = value;
       localStorage.setItem("episodesFilters", JSON.stringify(state.filters));
     },
     resetEpisodeFilters(state) {
@@ -93,17 +105,25 @@ const episodesSlice = createSlice({
       })
       .addCase(fetchEpisodes.fulfilled, (state, action) => {
         state.loading = false;
-        const newEpisodes = new Map(
+        const newEpisodes = new Map<number, Episode>(
           state.entities.map((episode) => [episode.id, episode]),
         );
-        action.payload.results.forEach((episode) => {
-          newEpisodes.set(episode.id, episode);
-        });
+
+        if (action.payload.results && Array.isArray(action.payload.results)) {
+          action.payload.results.forEach((episode) => {
+            newEpisodes.set(episode.id, episode);
+          });
+        } else {
+          console.error(
+            "Unexpected payload structure in fetchEpisodes:",
+            action.payload,
+          );
+        }
 
         state.entities = Array.from(newEpisodes.values());
-        state.maxPage = action.payload.info.pages;
+        state.maxPage = action.payload.info?.pages || 1;
         state.error = null;
-        state.hasMore = !!action.payload.info.next;
+        state.hasMore = !!action.payload.info?.next;
       })
       .addCase(fetchEpisodes.rejected, (state, action) => {
         state.loading = false;
@@ -113,13 +133,19 @@ const episodesSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchEpisodesByIds.fulfilled, (state, action) => {
-        const episodesData = Array.isArray(action.payload)
-          ? action.payload
-          : [action.payload];
+        let episodesData: Episode[];
+
+        if (Array.isArray(action.payload)) {
+          episodesData = action.payload;
+        } else if (isEpisode(action.payload)) {
+          episodesData = [action.payload];
+        } else {
+          console.error("Unexpected payload structure:", action.payload);
+          episodesData = [];
+        }
 
         state.episodesByIds = episodesData;
         state.loading = false;
-        state.error = null;
       })
       .addCase(fetchEpisodesByIds.rejected, (state, action) => {
         state.loading = false;
@@ -132,26 +158,25 @@ export const { setEpisodeFilter, resetEpisodeFilters } = episodesSlice.actions;
 
 export const selectAllEpisodes = (state: AppState) => state.episodes.entities;
 export const selectEpisodeFilters = (state: AppState) => state.episodes.filters;
-export const selectFilteredEpisodes = createSelector(
-  [selectAllEpisodes, selectEpisodeFilters],
-  (entities, filters) => {
-    return entities.filter((episode) => {
-      const filterString = filters.name.toLowerCase();
-      return (
-        episode.name.toLowerCase().includes(filterString) ||
-        episode.episode.toLowerCase().includes(filterString)
-      );
-    });
-  },
+export const selectFilteredEpisodes = createSelector<
+  [typeof selectAllEpisodes, typeof selectEpisodeFilters],
+  Episode[]
+>([selectAllEpisodes, selectEpisodeFilters], (episodes, filters) =>
+  episodes.filter((episode) =>
+    episode.name.toLowerCase().includes(filters.name.toLowerCase()),
+  ),
 );
 
-export const selectEpisodesByIds = createSelector(
-  [selectAllEpisodes, (state, episodeIds) => episodeIds],
-  (episodes, episodeIds) => {
-    return episodes.filter((episode) =>
-      episodeIds.includes(String(episode.id)),
-    );
-  },
+export const selectEpisodesByIds = createSelector<
+  [
+    typeof selectAllEpisodes,
+    (state: AppState, episodeIds: string[]) => string[],
+  ],
+  Episode[]
+>(
+  [selectAllEpisodes, (state: AppState, episodeIds: string[]) => episodeIds],
+  (episodes, episodeIds) =>
+    episodes.filter((episode) => episodeIds.includes(episode.id.toString())),
 );
 
 export default episodesSlice.reducer;

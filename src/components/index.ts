@@ -31,3 +31,4 @@ export { GoBackLink } from "./GoBackLink/GoBackLink";
 export { UpToButton } from "./UpToButton/UpToButton";
 
 export { ErrorPage } from "./ErrorPage/ErrorPage";
+export { RoutesComponent } from "./RoutesComponent/RoutesComponent";

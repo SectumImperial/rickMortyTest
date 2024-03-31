@@ -13,8 +13,10 @@ import {
   LocationRootState,
   LocationState,
   FilterValue,
+  Location,
 } from "../interfaces/interfaces";
 
+import { parseJSON } from "./helpers";
 
 export const fetchLocations = createAsyncThunk<
   FetchLocationPayload,
@@ -36,25 +38,33 @@ export const fetchLocations = createAsyncThunk<
   if (args.page !== undefined) {
     queryParams.set("page", args.page.toString());
   }
-
   const response = await axios.get(
-    `https://rickandmortyapi.com/api/location/?${queryParams}`
+    `https://rickandmortyapi.com/api/location/`,
+    {
+      params: Object.fromEntries(queryParams),
+    },
   );
   return response.data as FetchLocationPayload;
 });
 
-export const fetchLocationsByIds = createAsyncThunk(
-  "locations/fetchLocationsByIds",
-  async (locationIds) => {
-    const ids = Array.isArray(locationIds)
-      ? locationIds.map((url) => url.split("/").pop())
-      : locationIds;
-    const response = await axios.get(
-      `https://rickandmortyapi.com/api/location/${ids}`
-    );
-    return response.data;
+type LocationUrls = string | string[];
+
+export const fetchLocationsByIds = createAsyncThunk<
+  FetchLocationPayload,
+  LocationUrls
+>("locations/fetchLocationsByIds", async (locationIds) => {
+  let ids: string;
+
+  if (Array.isArray(locationIds)) {
+    ids = locationIds.map((url) => url.split("/").pop() ?? "").join(",");
+  } else {
+    ids = locationIds;
   }
-);
+  const response = await axios.get(
+    `https://rickandmortyapi.com/api/location/${ids}`,
+  );
+  return response.data as FetchLocationPayload;
+});
 
 const initialState: LocationState = {
   maxPage: 2,
@@ -63,11 +73,11 @@ const initialState: LocationState = {
   loading: true,
   error: null,
   hasMore: true,
-  filters: JSON.parse(localStorage.getItem("locationsFilters") || "") || {
+  filters: parseJSON(localStorage.getItem("locationsFilters"), {
     name: "",
     type: "",
     dimension: "",
-  },
+  }),
 };
 
 type FilterName = "name" | "type" | "dimension";
@@ -75,6 +85,10 @@ type FilterName = "name" | "type" | "dimension";
 interface FilterAction {
   filterName: FilterName;
   value: FilterValue;
+}
+
+function isLocation(payload: FetchLocationPayload | Location): payload is Location {
+  return "id" in payload;
 }
 
 const locationsSlice = createSlice({
@@ -103,22 +117,24 @@ const locationsSlice = createSlice({
       })
       .addCase(fetchLocations.fulfilled, (state, action) => {
         state.loading = false;
-        const newLocations = new Map(
-          state.entities.map((loc) => [loc.id, loc])
-        );
 
-        action.payload.results.forEach((loc) => {
-          newLocations.set(loc.id, loc);
-        });
+  if (action.payload.results && Array.isArray(action.payload.results)) {
+    const newLocations = new Map<number, Location>(
+      state.entities.map((location) => [location.id, location])
+    );
 
-        state.entities = Array.from(newLocations.values());
-        state.maxPage = action.payload.info.pages;
-        state.error = null;
+    action.payload.results.forEach((location) => {
+      newLocations.set(location.id, location);
+    });
 
-        state.loading = false;
-        state.entities = [...state.entities, ...action.payload.results];
-        state.maxPage = action.payload.info.pages;
-        state.hasMore = !!action.payload.info.next;
+    state.entities = Array.from(newLocations.values());
+  } else {
+    console.error("Unexpected payload structure:", action.payload);
+  }
+
+  state.maxPage = action.payload.info?.pages || 1;
+  state.error = null;
+  state.hasMore = !!action.payload.info?.next;
       })
       .addCase(fetchLocations.rejected, (state, action) => {
         state.loading = false;
@@ -126,12 +142,19 @@ const locationsSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(fetchLocationsByIds.fulfilled, (state, action) => {
-        const locationsData = Array.isArray(action.payload)
-          ? action.payload
-          : [action.payload];
+  let locationsData: Location[];
+
+        if (Array.isArray(action.payload)) {
+          locationsData = action.payload;
+        } else if (isLocation(action.payload)) {
+          locationsData = [action.payload];
+        } else {
+          console.error("Unexpected payload structure:", action.payload);
+          locationsData = [];
+        }
 
         state.locationsByIds = locationsData;
-        state.error = null;
+        state.loading = false;
       })
       .addCase(fetchLocationsByIds.rejected, (state, action) => {
         state.error = action.error.message;
@@ -142,21 +165,27 @@ const locationsSlice = createSlice({
 export const { setLocationsFilter, resetLocationsFilters } =
   locationsSlice.actions;
 
-export const selectAllLocations = (state: AppState) => state.locations.entities;
-export const selectLocationsFilters = (state: AppState) => state.locations.filters;
+export const selectAllLocations = (state: AppState): Location[] =>
+  state.locations.entities;
 
-export const selectFilteredLocations = createSelector(
-  [(state) => state.locations],
-  (locations) => {
-    const { entities, filters } = locations;
-    return entities.filter(
-      (location: { name: string; type: string; dimension: string; }) =>
-        (!filters.name ||
-          location.name.toLowerCase().includes(filters.name.toLowerCase())) &&
-        (!filters.type || location.type === filters.type) &&
-        (!filters.dimension || location.dimension === filters.dimension)
-    );
-  }
+export const selectLocationsFilters = (
+  state: AppState,
+): LocationState["filters"] => state.locations.filters;
+
+export const selectFilteredLocations = createSelector<
+  [
+    (state: AppState) => Location[],
+    (state: AppState) => LocationState["filters"],
+  ],
+  Location[]
+>([selectAllLocations, selectLocationsFilters], (locations, filters) =>
+  locations.filter(
+    (location) =>
+      (!filters.name ||
+        location.name.toLowerCase().includes(filters.name.toLowerCase())) &&
+      (!filters.type || location.type === filters.type) &&
+      (!filters.dimension || location.dimension === filters.dimension),
+  ),
 );
 
 export default locationsSlice.reducer;

@@ -4,17 +4,17 @@ import { Box, Button, Modal, Typography } from "@mui/material";
 import styles from "./filtersModal.module.scss";
 import { AdvancedFiltersButton, SelectField } from "..";
 
-
 interface ModalDataType {
   label: string;
   items: string[];
-  filterName: string;
-  type: 'characters' | 'locations' | 'episodes';
 }
 
 interface FiltersModalProps {
   modalData: ModalDataType[];
+  type: FilterName;
 }
+
+type FilterName = "characters" | "episodes" | "locations";
 
 const ApplyButtonStyle = styled(Button)({
   backgroundColor: "#F2F9FE",
@@ -42,11 +42,13 @@ const ApplyButtonStyle = styled(Button)({
   },
 });
 
-export function FiltersModal({ modalData }: FiltersModalProps) {
+export function FiltersModal(
+  { modalData }: FiltersModalProps,
+  type: FilterName,
+) {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
 
   return (
     <div>
@@ -70,17 +72,17 @@ export function FiltersModal({ modalData }: FiltersModalProps) {
 
           <div>
             <ul className={styles.modalList}>
-            {modalData.map((item) => (
-              <li key={item.label} className={styles.filterItem}>
-                <SelectField
-                  label={item.label}
-                  items={item.items}
-                  filterName={item.filterName.toLowerCase()}
-                  type={item.type} 
-                />
-              </li>
-            ))}
-          </ul>
+              {modalData.map((item) => (
+                <li key={item.label} className={styles.filterItem}>
+                  <SelectField
+                    label={item.label}
+                    items={item.items}
+                    filterName={item.label.toLowerCase()}
+                    type={type}
+                  />
+                </li>
+              ))}
+            </ul>
             <ApplyButtonStyle
               variant="contained"
               disableRipple

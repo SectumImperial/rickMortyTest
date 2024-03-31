@@ -30,7 +30,7 @@ export interface CharactersCardProps {
 
 export interface CharacterState {
   maxPage: number;
-  entities: Character[]; 
+  entities: Character[];
   charactersByIds: Character[];
   loading: boolean | null;
   error: string | null | undefined;
@@ -48,13 +48,12 @@ export interface CharacterRootState {
 }
 
 export interface FetchCharactersPayload {
-  results: Character[];
-  info: {
+  results?: Character[];
+  info?: {
     pages: number;
     next: string | null;
   };
 }
-
 // Locations
 export interface Location {
   id: number;
@@ -70,7 +69,7 @@ export interface Location {
 
 export interface LocationState {
   maxPage: number;
-  entities: Location[]; 
+  entities: Location[];
   locationsByIds: Location[];
   loading: boolean | null;
   error: string | null | undefined;
@@ -86,9 +85,17 @@ export interface LocationRootState {
   locations: LocationState;
 }
 
+export interface LocationCardProps {
+  location: Location;
+}
+
+export interface LocationsCardProps {
+  locations: Location[];
+}
+
 export interface FetchLocationPayload {
-  results: Location[];
-  info: {
+  results?: Location[];
+  info?: {
     pages: number;
     next: string | null;
   };
@@ -100,15 +107,16 @@ export interface Episode {
   name: string;
   air_date: string;
   episode: string;
-  characters: string[];
+  dimension: string;
+  characters: [];
   url: string;
   created: string;
 }
 
 export interface EpisodeState {
-  episodesByIds: any;
   maxPage: number;
   entities: Episode[];
+  episodesByIds: Episode[];
   loading: boolean | null;
   error: string | null | undefined;
   hasMore: boolean;
@@ -122,8 +130,8 @@ export interface EpisodeRootState {
 }
 
 export interface FetchEpisodePayload {
-  results: Episode[];
-  info: {
+  results?: Episode[];
+  info?: {
     pages: number;
     next: string | null;
   };
@@ -132,7 +140,6 @@ export interface FetchEpisodePayload {
 export interface EpisodesCardProps {
   episodes: Episode[];
 }
-
 export interface EpisodeCardProps {
   episodeData: Episode;
 }

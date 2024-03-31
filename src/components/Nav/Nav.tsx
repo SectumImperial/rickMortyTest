@@ -2,7 +2,15 @@ import { useState } from "react";
 import { Link } from "@mui/material";
 import styles from "./nav.module.scss";
 
-export function Nav({ links }) {
+interface NavLink {
+  text: string;
+  url: string;
+}
+
+interface NavProps {
+  links: NavLink[];
+}
+export function Nav({ links }: NavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const classesBurger = isOpen
     ? `${styles.burger} ${styles.burgerOpen}`
@@ -12,7 +20,7 @@ export function Nav({ links }) {
     : `${styles.list}`;
 
   const handleBurgerCLick = () => {
-    document.querySelector("body").classList.toggle(styles.unScroll);
+    document.querySelector("body")?.classList.toggle(styles.unScroll);
     setIsOpen(!isOpen);
   };
 
@@ -26,7 +34,7 @@ export function Nav({ links }) {
       )}
       <div className={classesBurger} onClick={handleBurgerCLick}></div>
       <ul className={classesList}>
-        {links.map((link) => {
+        {links.map((link: NavLink) => {
           return (
             <li key={link.text}>
               <Link

@@ -1,10 +1,8 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import styles from "./mainEpisodes.module.scss";
 import {
   fetchEpisodes,
   selectFilteredEpisodes,
-  selectEpisodeFilters,
 } from "../../store/episodeSlice";
 import { ITEMS_PER_PAGE_INITIAL } from "./constants";
 import {
@@ -15,28 +13,34 @@ import {
   Loading,
   UpToButton,
 } from "..";
+import { AppState } from "../../interfaces/interfaces";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export function MainEpisodes() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
-  const [isUpToButtonVisible, setIsUpToButtonVisible] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
-  const [isNeedMore, setIsNeedMore] = useState(true);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(
+    ITEMS_PER_PAGE_INITIAL,
+  );
+  const [isUpToButtonVisible, setIsUpToButtonVisible] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState<boolean>(false);
+  const [isNeedMore, setIsNeedMore] = useState<boolean>(true);
 
-  const episodes = useSelector(selectFilteredEpisodes);
-  const episodeLoading = useSelector((state) => state.episodes.loading);
-  const maxPage = useSelector((state) => state.episodes.maxPage);
-  const error = useSelector((state) => state.locations.error);
-  const hasMore = useSelector((state) => state.locations.hasMore);
+  const episodes = useAppSelector(selectFilteredEpisodes);
+  const episodeLoading = useAppSelector(
+    (state: AppState) => state.episodes.loading,
+  );
+  const maxPage = useAppSelector((state: AppState) => state.episodes.maxPage);
+  const error = useAppSelector((state: AppState) => state.locations.error);
+  const hasMore = useAppSelector((state: AppState) => state.locations.hasMore);
 
-  const loadMoreRef = useRef(null);
-  const heroImage = useRef(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const heroImage = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isNeedMore && !error) {
-      dispatch(fetchEpisodes({ page: currentPage }));
+      void dispatch(fetchEpisodes({ page: currentPage }));
       setIsNeedMore(false);
     }
   }, [dispatch, currentPage, isNeedMore, hasMore, error]);
@@ -92,14 +96,13 @@ export function MainEpisodes() {
   return (
     <main className={styles.main}>
       <div className={styles.hero} ref={heroImage}>
-        <Hero className={styles.heroImage} type="rickAndMorty" />
+        <Hero type="rickAndMorty" />
       </div>
       <ul className={styles.filterList} onChange={handleFilterChange}>
         <li className={styles.filterField}>
           <FilterInput
             filterName="name"
             text="Filter by name or episode (ex. S01 or S01E02)"
-            action={selectEpisodeFilters}
             type="episodes"
           />
         </li>
@@ -108,14 +111,16 @@ export function MainEpisodes() {
       {episodeLoading && (
         <div className={styles.loadingIndicator}>
           <Loading />
-        </div>
+        </div> 
       )}
       <div
         ref={loadMoreRef}
         className={styles.loadMoreButtonContainer}
         onClick={handleLoadMoreClick}
       >
-        {currentPage <= maxPage && hasMore && <LoadMoreButton />}
+        {currentPage <= maxPage && hasMore && episodes.length > 0 && (
+          <LoadMoreButton />
+        )}
         {(!hasMore || error) && episodes.length !== 0 && (
           <p>No more episodes</p>
         )}

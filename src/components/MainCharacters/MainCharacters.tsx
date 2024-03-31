@@ -1,12 +1,10 @@
-import { useEffect, useState, useMemo, useCallback, useRef, FC } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import styles from "./mainCharacters.module.scss";
-import { AppState, SelectFilterLabel, FetchCharactersPayload } from "../../interfaces/interfaces";
+import { AppState, SelectFilterLabel } from "../../interfaces/interfaces";
 import { getUniqueValues, sortByIdAsc } from "../../helpers/helpers";
 import { ITEMS_PER_PAGE_INITIAL, TYPE } from "./constants";
 import {
   fetchCharacters,
-  selectCharactersFilters,
   selectFilteredCharacters,
   selectAllCharacters,
 } from "../../store/characterSlice";
@@ -20,20 +18,24 @@ import {
   Loading,
   UpToButton,
 } from "..";
-import { useAppDispatch } from "../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 export function MainCharacters() {
   const dispatch = useAppDispatch();
 
-  const maxPage = useSelector((state: AppState) => state.characters.maxPage);
-  const characterLoading = useSelector((state: AppState) => state.characters.loading);
-  const characters = useSelector(selectFilteredCharacters);
-  const allCharacters = useSelector(selectAllCharacters);
+  const maxPage = useAppSelector((state: AppState) => state.characters.maxPage);
+  const characterLoading = useAppSelector(
+    (state: AppState) => state.characters.loading,
+  );
+  const characters = useAppSelector(selectFilteredCharacters);
+  const allCharacters = useAppSelector(selectAllCharacters);
 
-  const error = useSelector((state: AppState) => state.characters.error);
-  const hasMore = useSelector((state: AppState) => state.characters.hasMore);
+  const error = useAppSelector((state: AppState) => state.characters.error);
+  const hasMore = useAppSelector((state: AppState) => state.characters.hasMore);
 
-  const [itemsPerPage, setItemsPerPage] = useState<number>(ITEMS_PER_PAGE_INITIAL);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(
+    ITEMS_PER_PAGE_INITIAL,
+  );
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isNeedMore, setIsNeedMore] = useState<boolean>(true);
 
@@ -43,13 +45,18 @@ export function MainCharacters() {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const heroImage = useRef<HTMLDivElement | null>(null);
 
-  const orderedCharacters = useMemo(() => sortByIdAsc(characters), [characters]);
+  const orderedCharacters = useMemo(
+    () => sortByIdAsc(characters),
+    [characters],
+  );
 
   useEffect(() => {
     if (isNeedMore && !error) {
-      dispatch(fetchCharacters({
-        page: currentPage,
-      }));
+      void dispatch(
+        fetchCharacters({
+          page: currentPage,
+        }),
+      );
       setIsNeedMore(false);
     }
   }, [dispatch, currentPage, isNeedMore, hasMore, error]);
@@ -88,15 +95,24 @@ export function MainCharacters() {
   }, []);
 
   // Selector fields
-  const statusOptions = useMemo(() => getUniqueValues(allCharacters, "status"), [allCharacters]);
-  const speciesOptions = useMemo(() => getUniqueValues(allCharacters, "species"), [allCharacters]);
-  const genderOptions = useMemo(() => getUniqueValues(allCharacters, "gender"), [allCharacters]);
+  const statusOptions = useMemo(
+    () => getUniqueValues(allCharacters, "status"),
+    [allCharacters],
+  );
+  const speciesOptions = useMemo(
+    () => getUniqueValues(allCharacters, "species"),
+    [allCharacters],
+  );
+  const genderOptions = useMemo(
+    () => getUniqueValues(allCharacters, "gender"),
+    [allCharacters],
+  );
 
   const selectFilterLabels: SelectFilterLabel[] = useMemo(
     () => [
       { label: "Species", items: speciesOptions },
-      { label: "Gender", items: genderOptions},
-      { label: "Status", items: statusOptions},
+      { label: "Gender", items: genderOptions },
+      { label: "Status", items: statusOptions },
     ],
     [statusOptions, speciesOptions, genderOptions],
   );
@@ -112,13 +128,15 @@ export function MainCharacters() {
     }
     if (orderedCharacters.length < itemsPerPage && currentPage !== maxPage)
       setIsNeedMore(true);
-    return <CharactersCards characters={orderedCharacters.slice(0, itemsPerPage)} />;
+    return (
+      <CharactersCards characters={orderedCharacters.slice(0, itemsPerPage)} />
+    );
   }, [orderedCharacters, itemsPerPage, currentPage, maxPage]);
 
   return (
     <main className={styles.main}>
       <div className={styles.hero} ref={heroImage}>
-        <Hero />
+        <Hero type={"names"} />
       </div>
       <ul
         className={styles.filterList}
@@ -126,12 +144,7 @@ export function MainCharacters() {
         onClick={handleFiltersChange}
       >
         <li className={`${styles.filterItem} ${styles.filterField}`}>
-          <FilterInput
-            filterName="name"
-            text="Filter by name..."
-            action={selectCharactersFilters}
-            type={TYPE}
-          />
+          <FilterInput filterName="name" text="Filter by name..." type={TYPE} />
         </li>
         {selectFilterLabels.map((selectItem) => (
           <li
@@ -140,18 +153,16 @@ export function MainCharacters() {
             onClick={handleFiltersChange}
           >
             <SelectField
-              props={{
-                label: selectItem.label,
-                items: selectItem.items,
-                filterName: selectItem.label.toLowerCase(),
-                type: TYPE,
-              }}
+              label={selectItem.label}
+              items={selectItem.items}
+              filterName={selectItem.label.toLowerCase()}
+              type={TYPE}
             />
           </li>
         ))}
       </ul>
       <div className={styles.advancedFiltersButton}>
-        <FiltersModal modalData={selectFilterLabels} />
+        <FiltersModal modalData={selectFilterLabels} type={TYPE} />
       </div>
       <section className={styles.contentCard}>{content}</section>
       {characterLoading && (
@@ -164,10 +175,10 @@ export function MainCharacters() {
         className={styles.loadMoreButtonContainer}
         onClick={handleLoadMoreClick}
       >
-        {currentPage <= maxPage && hasMore && <LoadMoreButton />}
-        {!hasMore && characters.length !== 0 && (
-          <p>No more characters</p>
+        {currentPage <= maxPage && hasMore && orderedCharacters.length > 0 && (
+          <LoadMoreButton />
         )}
+        {!hasMore && characters.length !== 0 && <p>No more characters</p>}
       </div>
       {currentPage > 2 && isUpToButtonVisible && (
         <div className={styles.upToButton} onClick={handleUpButtonClick}>

@@ -1,17 +1,28 @@
 import { useId } from "react";
-import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent } from "@mui/material";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+} from "@mui/material";
 import styles from "./selectField.module.scss";
 import { useFilters } from "../../hooks/useFilters";
-import {FC} from 'react';
+import { FC } from "react";
 
 interface SelectFieldProps {
   label: string;
   items: string[];
   filterName: string;
-  type: 'characters' | 'locations' | 'episodes';
+  type: "characters" | "locations" | "episodes";
 }
 
-export const SelectField: FC<SelectFieldProps> = ({ label, items, filterName, type }) => {
+export const SelectField: FC<SelectFieldProps> = ({
+  label,
+  items,
+  filterName,
+  type,
+}: SelectFieldProps) => {
   const idSelect = useId();
   const idLabel = useId();
 
@@ -65,4 +76,4 @@ export const SelectField: FC<SelectFieldProps> = ({ label, items, filterName, ty
       </Select>
     </FormControl>
   );
-}
+};

@@ -13,8 +13,10 @@ import {
   Character,
   FetchArgs,
   CharacterRootState,
-  FilterValue
+  FilterValue,
 } from "../interfaces/interfaces";
+
+import { parseJSON } from "./helpers";
 
 export const fetchCharacters = createAsyncThunk<
   FetchCharactersPayload,
@@ -36,40 +38,33 @@ export const fetchCharacters = createAsyncThunk<
   if (args.page !== undefined) {
     queryParams.set("page", args.page.toString());
   }
-  const response = await axios.get(`https://rickandmortyapi.com/api/character/`, {
-    params: Object.fromEntries(queryParams)
-  });
+  const response = await axios.get(
+    `https://rickandmortyapi.com/api/character/`,
+    {
+      params: Object.fromEntries(queryParams),
+    },
+  );
   return response.data as FetchCharactersPayload;
 });
 
-
 type ResidentUrls = string | string[];
 
-export const fetchCharactersByIds = createAsyncThunk<FetchCharactersPayload, ResidentUrls>(
-  "characters/fetchCharactersByIds",
-  async (residentUrls) => {
-    let ids: string;
+export const fetchCharactersByIds = createAsyncThunk<
+  FetchCharactersPayload,
+  ResidentUrls
+>("characters/fetchCharactersByIds", async (residentUrls) => {
+  let ids: string;
 
-    if (Array.isArray(residentUrls)) {
-      ids = residentUrls.map(url => url.split('/').pop() ?? '').join(',');
-    } else {
-      ids = residentUrls;
-    }
-    const response = await axios.get(
-      `https://rickandmortyapi.com/api/character/${ids}`
-    );
-    return response.data as FetchCharactersPayload;
+  if (Array.isArray(residentUrls)) {
+    ids = residentUrls.map((url) => url.split("/").pop() ?? "").join(",");
+  } else {
+    ids = residentUrls;
   }
-);
-
-
-function parseJSON<T>(value: string | null, defaultValue: T): T {
-  try {
-    return value ? (JSON.parse(value) as T) : defaultValue;
-  } catch {
-    return defaultValue;
-  }
-}
+  const response = await axios.get(
+    `https://rickandmortyapi.com/api/character/${ids}`,
+  );
+  return response.data as FetchCharactersPayload;
+});
 
 const initialState: CharacterState = {
   maxPage: 1,
@@ -93,7 +88,11 @@ interface FilterAction {
   value: FilterValue;
 }
 
-
+function isCharacter(
+  payload: FetchCharactersPayload | Character,
+): payload is Character {
+  return "id" in payload;
+}
 
 const charactersSlice = createSlice({
   name: "characters",
@@ -123,25 +122,33 @@ const charactersSlice = createSlice({
       })
       .addCase(fetchCharacters.fulfilled, (state, action) => {
         state.loading = false;
-        const newCharacters = new Map(
-          state.entities.map((char) => [char.id, char])
+        const newCharacters = new Map<number, Character>(
+          state.entities.map((char) => [char.id, char]),
         );
-
-        action.payload.results.forEach((char) => {
+        action.payload.results?.forEach((char: Character) => {
           newCharacters.set(char.id, char);
         });
 
         state.entities = Array.from(newCharacters.values());
-        state.maxPage = action.payload.info.pages;
+        state.maxPage = action.payload.info?.pages || 1;
         state.error = null;
-        state.hasMore = !!action.payload.info.next;
+        state.hasMore = !!action.payload.info?.next || false;
       })
       .addCase(fetchCharacters.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
       .addCase(fetchCharactersByIds.fulfilled, (state, action) => {
-        const charactersData = Array.isArray(action.payload) ? action.payload : action.payload.results;
+        let charactersData: Character[];
+
+        if (Array.isArray(action.payload)) {
+          charactersData = action.payload;
+        } else if (isCharacter(action.payload)) {
+          charactersData = [action.payload];
+        } else {
+          console.error("Unexpected payload structure:", action.payload);
+          charactersData = [];
+        }
 
         state.charactersByIds = charactersData;
         state.loading = false;
@@ -161,27 +168,38 @@ export const { setCharacterFilter, resetCharacterFilters } =
 
 export const selectMaxPage = (state: CharacterState) => state.maxPage;
 
-  export const selectAllCharacters = (state: AppState): Character[] => state.characters.entities;
-  export const selectFilters = (state: AppState) => state.characters.filters;
-  
-  export const selectFilteredCharacters = createSelector(
-    [selectAllCharacters, selectFilters],
-    (entities: Character[], filters) => entities.filter((character: Character) => (
-      (!filters.name || character.name.toLowerCase().includes(filters.name.toLowerCase())) &&
-      (!filters.species || character.species === filters.species) &&
-      (!filters.status || character.status === filters.status) &&
-      (!filters.gender || character.gender === filters.gender)
-    ))
-  );
+export const selectAllCharacters = (state: AppState): Character[] =>
+  state.characters.entities;
+export const selectFilters = (state: AppState) => state.characters.filters;
 
-  export const selectCharactersByIds = createSelector<
-  [typeof selectAllCharacters, (state: AppState, characterIds: string[]) => string[]],
+export const selectFilteredCharacters = createSelector(
+  [selectAllCharacters, selectFilters],
+  (entities: Character[], filters) =>
+    entities.filter(
+      (character: Character) =>
+        (!filters.name ||
+          character.name.toLowerCase().includes(filters.name.toLowerCase())) &&
+        (!filters.species || character.species === filters.species) &&
+        (!filters.status || character.status === filters.status) &&
+        (!filters.gender || character.gender === filters.gender),
+    ),
+);
+
+export const selectCharactersByIds = createSelector<
+  [
+    typeof selectAllCharacters,
+    (state: AppState, characterIds: string[]) => string[],
+  ],
   Character[]
 >(
-  [selectAllCharacters, (state: AppState, characterIds: string[]) => characterIds],
-  (characters: Character[], characterIds: string[]) => characters.filter(character =>
-    characterIds.includes(character.id.toString())
-  )
+  [
+    selectAllCharacters,
+    (state: AppState, characterIds: string[]) => characterIds,
+  ],
+  (characters: Character[], characterIds: string[]) =>
+    characters.filter((character) =>
+      characterIds.includes(character.id.toString()),
+    ),
 );
 
 export default charactersSlice.reducer;

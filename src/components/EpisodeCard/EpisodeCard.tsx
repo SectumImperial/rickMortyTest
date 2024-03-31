@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
-import {FC} from "react"
+import { FC } from "react";
 
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 
 import styles from "./episodeCard.module.scss";
-import { EpisodeCardProps } from "../../interfaces/interfaces"
+import { EpisodeCardProps } from "../../interfaces/interfaces";
 
-export const EpisodeCard: FC<EpisodeCardProps> = ({ episodeData }: EpisodeCardProps) => {
+export const EpisodeCard: FC<EpisodeCardProps> = ({
+  episodeData,
+}: EpisodeCardProps) => {
   const { name, air_date, episode, id } = episodeData;
   const episodeLink = `/episodes/${id}`;
   return (
@@ -48,4 +50,4 @@ export const EpisodeCard: FC<EpisodeCardProps> = ({ episodeData }: EpisodeCardPr
       </Card>
     </Link>
   );
-}
+};

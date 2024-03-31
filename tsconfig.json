@@ -27,5 +27,7 @@
     ],
     "types": [
       "typePatches"
-    ]
+    ],
+    "include": [
+      "src/**/*", "src/tsconfig.eslint.json"],
   }

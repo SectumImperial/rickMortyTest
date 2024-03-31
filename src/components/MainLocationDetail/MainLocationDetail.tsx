@@ -1,48 +1,54 @@
 import { useEffect, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { GoBackLink, CharacterCard, Loading } from "../";
+import { GoBackLink, CharacterCard, Loading } from "..";
 import { fetchLocationsByIds } from "../../store/locationsSlice";
 import { fetchCharactersByIds } from "../../store/characterSlice";
 import styles from "./mainLocationDetail.module.scss";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { AppState } from "../../interfaces/interfaces";
 
 export function MainLocationDetail() {
-  const dispatch = useDispatch();
-  const { locationId } = useParams();
+  const dispatch = useAppDispatch();
+  const { locationId } = useParams<{ locationId: string }>();
 
-  const locationLoading = useSelector((state) => state.locations.loadingById);
+  const locationLoading = useAppSelector(
+    (state: AppState) => state.locations.loading,
+  );
 
-  const location = useSelector((state) =>
+  const location = useAppSelector((state: AppState) =>
     state.locations.locationsByIds.find(
       (location) => location.id.toString() === locationId,
     ),
   );
-  const residents = useSelector((state) => state.characters.charactersByIds);
+  const residents = useAppSelector(
+    (state: AppState) => state.characters.charactersByIds,
+  );
 
   useEffect(() => {
-      dispatch(fetchLocationsByIds(locationId));
+    if (typeof locationId !== "undefined") {
+      void dispatch(fetchLocationsByIds(locationId));
+    }
   }, [dispatch, locationId]);
 
   useEffect(() => {
-    if (
-      location &&
-      location.residents &&
-      location.residents.length > 0
-    ) {
-      dispatch(fetchCharactersByIds(location.residents));
+    if (location && location.residents && location.residents.length > 0) {
+      void dispatch(fetchCharactersByIds(location.residents));
     }
   }, [dispatch, locationLoading, location]);
 
   const nameLocation = useMemo(() => {
     if (!locationLoading && location) return location.name;
+    return "";
   }, [location, locationLoading]);
 
   const typeLocation = useMemo(() => {
     if (!locationLoading && location) return location.type;
+    return "";
   }, [location, locationLoading]);
 
   const typeDimension = useMemo(() => {
     if (!locationLoading && location) return location.dimension;
+    return "";
   }, [location, locationLoading]);
 
   const mainLocationInfo = useMemo(

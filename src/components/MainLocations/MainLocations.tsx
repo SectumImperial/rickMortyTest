@@ -1,9 +1,7 @@
-import { useDispatch, useSelector } from "react-redux";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   selectAllLocations,
   fetchLocations,
-  selectLocationsFilters,
   selectFilteredLocations,
 } from "../../store/locationsSlice";
 import styles from "./mainLocations.module.scss";
@@ -19,16 +17,20 @@ import {
   Loading,
   UpToButton,
 } from "..";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { AppState, SelectFilterLabel } from "../../interfaces/interfaces";
 
 export function MainLocations() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const allLocations = useSelector(selectAllLocations);
-  const locations = useSelector(selectFilteredLocations);
-  const locationLoading = useSelector((state) => state.locations.loading);
-  const maxPage = useSelector((state) => state.locations.maxPage);
-  const error = useSelector((state) => state.locations.error);
-  const hasMore = useSelector((state) => state.locations.hasMore);
+  const allLocations = useAppSelector(selectAllLocations);
+  const locations = useAppSelector(selectFilteredLocations);
+  const locationLoading = useAppSelector(
+    (state: AppState) => state.locations.loading,
+  );
+  const maxPage = useAppSelector((state: AppState) => state.locations.maxPage);
+  const error = useAppSelector((state: AppState) => state.locations.error);
+  const hasMore = useAppSelector((state: AppState) => state.locations.hasMore);
 
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_INITIAL);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,12 +38,12 @@ export function MainLocations() {
   const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
   const [isNeedMore, setIsNeedMore] = useState(true);
 
-  const loadMoreRef = useRef(null);
-  const heroImage = useRef(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const heroImage = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isNeedMore && !error) {
-      dispatch(fetchLocations({ page: currentPage }));
+      void dispatch(fetchLocations({ page: currentPage }));
       setIsNeedMore(false);
     }
   }, [dispatch, currentPage, isNeedMore, hasMore, error]);
@@ -89,9 +91,9 @@ export function MainLocations() {
     [allLocations],
   );
 
-  const selectFilterLabels = useMemo(
+  const selectFilterLabels: SelectFilterLabel[] = useMemo(
     () => [
-      { label: "Type", items: typeOptions, },
+      { label: "Type", items: typeOptions },
       {
         label: "Dimension",
         items: dimensionOptions,
@@ -118,7 +120,7 @@ export function MainLocations() {
   return (
     <main className={styles.main}>
       <div className={styles.hero} ref={heroImage}>
-        <Hero className={styles.heroImage} type="circle" />
+        <Hero type="circle" />
       </div>
       <ul
         className={styles.filterList}
@@ -129,28 +131,21 @@ export function MainLocations() {
           key={"Filter"}
           className={`${styles.filterItem} ${styles.filterField}`}
         >
-          <FilterInput
-            filterName="name"
-            text="Filter by name..."
-            action={selectLocationsFilters}
-            type={TYPE}
-          />
+          <FilterInput filterName="name" text="Filter by name..." type={TYPE} />
         </li>
         {selectFilterLabels.map((selectItem) => (
           <li className={styles.filterSelect} key={selectItem.label}>
             <SelectField
-              props={{
-                label: selectItem.label,
-                items: selectItem.items,
-                filterName: selectItem.label.toLowerCase(),
-                type: TYPE,
-              }}
+              label={selectItem.label}
+              items={selectItem.items}
+              filterName={selectItem.label.toLowerCase()}
+              type={TYPE}
             />
           </li>
         ))}
       </ul>
       <div className={styles.advancedFiltersButton}>
-        <FiltersModal modalData={selectFilterLabels} />
+        <FiltersModal modalData={selectFilterLabels} type={TYPE} />
       </div>
       <section className={styles.contentCard}>{content}</section>
       {locationLoading && (
@@ -163,10 +158,10 @@ export function MainLocations() {
         className={styles.loadMoreButtonContainer}
         onClick={handleLoadMoreClick}
       >
-        {currentPage <= maxPage && hasMore && <LoadMoreButton />}
-        {!hasMore && locations.length !== 0 && (
-          <p>No more locations</p>
+        {currentPage <= maxPage && hasMore && locations.length > 0 && (
+          <LoadMoreButton />
         )}
+        {!hasMore && locations.length !== 0 && <p>No more locations</p>}
       </div>
       {currentPage > 2 && isUpToButtonVisible && (
         <div className={styles.upToButton} onClick={handleUpButtonClick}>

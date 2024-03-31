@@ -3,8 +3,9 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import styles from "./locationCard.module.scss";
 import { Link } from "react-router-dom";
+import { LocationCardProps } from "../../interfaces/interfaces";
 
-export function LocationCard({ location }) {
+export function LocationCard({ location }: LocationCardProps) {
   const { name, type, id } = location;
   const locationsLink = `/locations/${id}`;
 
