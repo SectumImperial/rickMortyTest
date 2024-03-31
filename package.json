@@ -2,6 +2,7 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://maksnai.github.io/rickAndMortyInterApp/",
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
@@ -28,7 +29,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint . --ext .ts,.tsx --fix"
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +54,7 @@
     "@eslint/js": "^8.57.0",
     "@types/eslint__js": "^8.42.3",
     "eslint": "^8.57.0",
+    "gh-pages": "^6.1.1",
     "typescript": "^5.4.3",
     "typescript-eslint": "^7.4.0"
   }
